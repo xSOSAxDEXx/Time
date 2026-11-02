@@ -5,9 +5,9 @@ import { AppText } from '@/components/AppText';
 import { BackupSection } from '@/components/BackupSection';
 import { Button } from '@/components/Button';
 import { ChoiceChips } from '@/components/ChoiceChips';
-import { ComingSoon } from '@/components/ComingSoon';
 import { ListEditor } from '@/components/ListEditor';
 import { NumberField } from '@/components/NumberField';
+import { ReminderSection } from '@/components/ReminderSection';
 import { Screen } from '@/components/Screen';
 import { Labeled, Section } from '@/components/Section';
 import { SwitchRow } from '@/components/SwitchRow';
@@ -223,9 +223,7 @@ export default function SettingsScreen() {
         />
       </Section>
 
-      <ComingSoon title="Clock-out reminder" step={7}>
-        A notification when you reach your min clock-out time.
-      </ComingSoon>
+      <ReminderSection />
       <BackupSection />
 
       {Platform.OS === 'web' ? (

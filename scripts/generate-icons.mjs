@@ -59,6 +59,22 @@ async function padded(size, scale) {
     .png(PNG);
 }
 
+/**
+ * Android's notification icon must be a small all-white silhouette, so the
+ * artwork can't be used: this is a simple alarm clock in the same spirit.
+ */
+const NOTIFICATION_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <g fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="48" cy="52" r="28"/>
+    <path d="M48 36v16l10 8"/>
+    <path d="M30 84l6-8M66 84l-6-8"/>
+  </g>
+  <g fill="#fff">
+    <path d="M10 26a14 14 0 0 1 22-14z"/>
+    <path d="M86 26a14 14 0 0 0-22-14z"/>
+  </g>
+</svg>`;
+
 const outputs = [
   // Native app icon (iOS rounds it itself; it must have no transparency).
   ['assets/brand/icon.png', () => art(1024).png(PNG)],
@@ -67,6 +83,8 @@ const outputs = [
   ['assets/brand/splash-icon.png', () => rounded(512)],
   // Used in-app (Week screen header).
   ['assets/brand/logo-mark.png', () => rounded(256)],
+  // Android notification icon (white on transparent).
+  ['assets/brand/notification-icon.png', () => sharp(Buffer.from(NOTIFICATION_SVG)).png()],
   // Web
   ['assets/brand/favicon.png', () => rounded(48)],
   ['public/icons/icon-192.png', () => rounded(192)],

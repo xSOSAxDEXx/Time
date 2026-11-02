@@ -82,3 +82,43 @@ jest.mock('expo-sharing', () => {
     },
   };
 });
+
+// expo-notifications: records what's scheduled. Tests set `__permission`
+// ('granted' | 'undetermined' | 'denied') and read `__scheduled` (id → request).
+jest.mock('expo-notifications', () => {
+  const state = { permission: 'undetermined' as string, askAnswer: 'granted' as string };
+  const scheduled = new Map<string, { content: unknown; trigger: { date: Date } }>();
+  const result = (p: string) => ({
+    granted: p === 'granted',
+    canAskAgain: p !== 'denied',
+    status: p,
+  });
+  // Plain functions, not jest.fn(): mock resets between tests would wipe them.
+  return {
+    __scheduled: scheduled,
+    __setPermission: (p: string, askAnswer = 'granted') => {
+      state.permission = p;
+      state.askAnswer = askAnswer;
+    },
+    AndroidImportance: { HIGH: 4 },
+    SchedulableTriggerInputTypes: { DATE: 'date' },
+    setNotificationHandler: () => {},
+    setNotificationChannelAsync: async () => null,
+    getPermissionsAsync: async () => result(state.permission),
+    requestPermissionsAsync: async () => {
+      state.permission = state.askAnswer;
+      return result(state.permission);
+    },
+    cancelScheduledNotificationAsync: async (id: string) => {
+      scheduled.delete(id);
+    },
+    scheduleNotificationAsync: async (req: {
+      identifier: string;
+      content: unknown;
+      trigger: { date: Date };
+    }) => {
+      scheduled.set(req.identifier, req);
+      return req.identifier;
+    },
+  };
+});

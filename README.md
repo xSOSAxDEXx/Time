@@ -84,6 +84,37 @@ Settings → Backup and export.
   with `=`, `+`, `-` or `@` gets a leading apostrophe so spreadsheet
   programs don't run it as a formula.
 
+## Clock-out reminder
+
+Settings → Clock-out reminder (on by default). When you clock in, Clocked
+works out your min clock-out time and reminds you then (or 5, 10 or 15
+minutes early). It moves when start, break, remote or time off change, and
+is cancelled when you clock out or clear the day. Clocked asks for
+notification permission the first time you clock in with the reminder on,
+after explaining why; "Not now" turns the reminder off.
+
+- **Android app:** a local notification scheduled on the phone with
+  `expo-notifications`. It arrives with the app closed and survives a
+  restart of the phone. Android may deliver it a minute or two late to
+  save battery. Nothing goes through a server; push notifications are not
+  set up.
+- **Web (and iPhone):** browsers can't reliably notify you once the page is
+  closed, and the web app has no server to send one. So on the web the
+  reminder only works **while Clocked is open in a tab**: a browser
+  notification (if you allow it) at the reminder time, and a banner on the
+  Week screen. On iPhone, Safari only allows notifications for web apps
+  added to the Home Screen (iOS 16.4 and later); without that you get the
+  banner only. Settings says this plainly.
+
+### Dependency added (step 7)
+
+- `expo-notifications` (the version Expo SDK 58 lists): schedules the
+  clock-out reminder on the phone. Its config plugin sets the notification
+  icon (`assets/brand/notification-icon.png`, made by `npm run icons`) and
+  has remote (push) notifications turned off. It adds Android's
+  notification and "run after restart" permissions. Free, no account, no
+  network use. On the web it isn't used (`src/notifications/scheduler.web.ts`).
+
 ## Android test build
 
 `.github/workflows/android-preview.yml` builds an installable test APK on
@@ -112,6 +143,7 @@ src/components/   Shared UI
 src/timecard/     Entry type, date helpers, spreadsheet formulas, holiday rules, charts, CSV
 src/store/        Persisted entries and settings
 src/backup/       Backup file format, restore, file save/pick (phone and web)
+src/notifications/ Clock-out reminder: when it fires, phone and web schedulers
 src/hooks/        Small shared hooks
 src/theme/        Colours, type, spacing
 src/pwa/          Service worker registration (web only)

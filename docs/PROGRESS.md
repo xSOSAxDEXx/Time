@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 2 Nov 2026 (step 6)._
+_Last updated: 2 Nov 2026 (step 7)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -73,6 +73,14 @@ _Last updated: 2 Nov 2026 (step 6)._
   settings that page had are taken; holidays and pay stay as they are.
 - **CSV** includes company holidays counted automatically, so its totals
   match the app; min clock out in the CSV leaves out the usual break.
+- **Reminder permission:** asked on the Week screen the first time you clock
+  in with the reminder on, with a short explanation. "Not now" turns the
+  reminder off (Settings can turn it back on). If a min clock out is
+  already past when it's set, no notification is scheduled.
+- **Web reminder:** a banner on the Week screen once the reminder time
+  passes while still clocked in, plus a browser notification if allowed.
+- **Notification icon:** Android needs a plain white silhouette, so it's a
+  simple alarm clock rather than the artwork.
 - "Long shift" warning above 16 hours; "still clocked in" warning for a
   shift with no end from before yesterday.
 
