@@ -60,3 +60,35 @@ describe('entries store', () => {
     expect(useEntries.getState().entries['2030-01-09'].start).toBe('09:00');
   });
 });
+
+describe('editing a company holiday filled in automatically', () => {
+  const shown = {
+    date: '2030-01-01',
+    start: '',
+    end: '',
+    breakHours: 0,
+    remoteHours: 0,
+    timeOffHours: 8,
+    timeOffType: 'Company Holiday',
+    travel: '' as const,
+    location: '',
+    comment: '',
+    holiday: "New Year's Day",
+  };
+
+  it('keeps the holiday time off on the first change, without saving the marker', () => {
+    useEntries.getState().updateDay('2030-01-01', { comment: 'Quiet day' }, shown);
+    const saved = useEntries.getState().entries['2030-01-01'];
+    expect(saved).toMatchObject({
+      timeOffHours: 8,
+      timeOffType: 'Company Holiday',
+      comment: 'Quiet day',
+    });
+    expect(saved).not.toHaveProperty('holiday');
+  });
+
+  it('ignores a shown day for a different date', () => {
+    useEntries.getState().updateDay('2030-01-02', { comment: 'x' }, shown);
+    expect(useEntries.getState().entries['2030-01-02'].timeOffHours).toBe(0);
+  });
+});

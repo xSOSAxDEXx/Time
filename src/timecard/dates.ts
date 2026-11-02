@@ -116,3 +116,9 @@ export function formatWeekRange(monday: DateKey): string {
   const end = a.getMonth() === b.getMonth() ? String(b.getDate()) : formatShortDate(sunday);
   return `${formatShortDate(monday)} – ${end}, ${b.getFullYear()}`;
 }
+
+/** A length of time as hours and minutes: 1.0833 → "1:05". */
+export function formatDuration(hours: number): string {
+  const mins = Math.max(0, Math.round(hours * 60));
+  return `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, '0')}`;
+}

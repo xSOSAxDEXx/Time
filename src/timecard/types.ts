@@ -22,6 +22,10 @@ export type Entry = {
   travel: Travel;
   location: string;
   comment: string;
+  /** Don't count the company holiday on this date (it's a holiday, but not for you this time). */
+  skipHoliday?: boolean;
+  /** Set on days filled in automatically from the holiday list (never saved). */
+  holiday?: string;
 };
 
 export type Entries = Record<DateKey, Entry>;
@@ -52,6 +56,7 @@ export function isEmptyEntry(e: Entry): boolean {
     !e.timeOffType &&
     !e.travel &&
     !e.location &&
-    !e.comment.trim()
+    !e.comment.trim() &&
+    !e.skipHoliday
   );
 }

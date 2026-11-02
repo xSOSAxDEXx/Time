@@ -2,16 +2,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { STANDARD_HOLIDAYS, type HolidayRule } from '@/timecard/holidays';
+
 export type ThemeChoice = 'system' | 'light' | 'dark';
 
 /** Minutes before the min clock-out time to remind (CLAUDE.md §3.8). */
 export type ReminderLead = 0 | 5 | 10 | 15;
 
-/** Overtime rule for the pay estimate (CLAUDE.md §3.9). */
+/**
+ * Overtime for the pay estimate (CLAUDE.md §3.9): none, or hours worked over
+ * a weekly threshold paid at a multiple of the regular rate.
+ */
 export type OvertimeRule =
   { kind: 'none' } | { kind: 'weekly'; thresholdHours: number; multiplier: number };
 
-export const DEFAULT_OVERTIME: OvertimeRule = {
+export type WeeklyOvertime = Extract<OvertimeRule, { kind: 'weekly' }>;
+
+export const DEFAULT_OVERTIME: WeeklyOvertime = {
   kind: 'weekly',
   thresholdHours: 40,
   multiplier: 1.5,
@@ -36,8 +43,21 @@ export type Settings = {
   /** Hourly rate for the pay estimate; null hides pay everywhere. */
   hourlyRate: number | null;
   overtime: OvertimeRule;
-  /** Time off types paid at the straight rate (others, like Unpaid, pay nothing). */
-  paidTimeOffTypes: string[];
+  /**
+   * Pay for each time off type, as a multiple of the regular rate: 0 = not
+   * paid, 1 = regular pay, 1.5 = time and a half. Types not listed are paid
+   * at 1.
+   */
+  timeOffPay: Record<string, number>;
+  /**
+   * Usual break in minutes, added to min clock out while clocked in until
+   * the real break is logged. 0 = off.
+   */
+  usualBreakMinutes: number;
+  /** Company holidays, kept from year to year. */
+  holidays: HolidayRule[];
+  /** Count each company holiday as a full day of Company Holiday time off, unless something else is logged. */
+  autoHolidays: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -52,7 +72,10 @@ export const DEFAULT_SETTINGS: Settings = {
   reminderLeadMinutes: 0,
   hourlyRate: null,
   overtime: DEFAULT_OVERTIME,
-  paidTimeOffTypes: ['PTO', 'Floating', 'Company Holiday'],
+  timeOffPay: { PTO: 1, Floating: 1, 'Company Holiday': 1, Unpaid: 0 },
+  usualBreakMinutes: 0,
+  holidays: STANDARD_HOLIDAYS,
+  autoHolidays: true,
 };
 
 type SettingsState = Settings & {

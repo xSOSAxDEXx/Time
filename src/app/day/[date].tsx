@@ -8,15 +8,22 @@ import { ChoiceChips } from '@/components/ChoiceChips';
 import { NumberField } from '@/components/NumberField';
 import { Screen } from '@/components/Screen';
 import { TimeField } from '@/components/TimeField';
+import { progressText } from '@/components/DayRow';
+import { useNow } from '@/hooks/useNow';
 import { useSoftConfirm } from '@/hooks/useSoftConfirm';
+import { useTimeCard } from '@/hooks/useTimeCard';
+import { useToday } from '@/hooks/useToday';
 import { useEntries } from '@/store/entries';
 import { useSettings } from '@/store/settings';
 import {
+  dayWarnings,
   entryFor,
+  HOLIDAY_TIME_OFF_TYPE,
   isInProgress,
   isOvernight,
   metMinClockOut,
   minClockOut,
+  plannedBreak,
   totalWorked,
 } from '@/timecard/calc';
 import {
@@ -47,9 +54,12 @@ export default function DayScreen() {
   const { colors } = useTheme();
   const params = useLocalSearchParams<{ date: string }>();
   const date = isDateKey(params.date) ? params.date : null;
-  const entries = useEntries((s) => s.entries);
+  const today = useToday();
+  const now = new Date(useNow(30_000));
+  const { entries, holidays } = useTimeCard(date ?? today, date ?? today);
   const { updateDay, clearDay } = useEntries.getState();
-  const { requiredHours, timeOffTypes, locations } = useSettings();
+  const { requiredHours, timeOffTypes, locations, usualBreakMinutes } = useSettings();
+  const usualBreakHours = minutesToHours(usualBreakMinutes);
   const { armed, confirm } = useSoftConfirm();
   const entry = date ? entryFor(entries, date) : null;
   // The comment being typed; null when not editing, so the saved one shows.
@@ -69,13 +79,18 @@ export default function DayScreen() {
     );
   }
 
-  const update = (patch: Parameters<typeof updateDay>[1]) => updateDay(date, patch);
+  // Passing the shown day keeps an automatic holiday's time off on the first change.
+  const update = (patch: Parameters<typeof updateDay>[1]) => updateDay(date, patch, entry);
+  const holiday = holidays.get(date);
+  const warnings = dayWarnings(entry, today);
+  const progress = progressText(entry, now, requiredHours, usualBreakHours);
+  const usingUsualBreak = plannedBreak(entry, usualBreakHours) !== entry.breakHours;
   const saveComment = () => {
     if (draft != null && draft !== entry.comment) update({ comment: draft });
     setDraft(null);
   };
   const total = totalWorked(entry);
-  const min = minClockOut(entry, requiredHours);
+  const min = minClockOut(entry, requiredHours, usualBreakHours);
   const met = metMinClockOut(entry, requiredHours);
 
   return (
@@ -87,6 +102,56 @@ export default function DayScreen() {
         </AppText>
         <Button label="›" accessibilityLabel="Next day" onPress={() => go(1)} />
       </View>
+
+      {holiday ? (
+        <View
+          style={[
+            styles.notice,
+            { backgroundColor: colors.surfaceSoft, borderColor: colors.border },
+          ]}>
+          <AppText variant="bodyStrong">{holiday}</AppText>
+          {entry.holiday ? (
+            <>
+              <AppText tone="muted">
+                Counted as a company holiday ({formatHours(entry.timeOffHours)} hours).
+              </AppText>
+              <Button
+                label="Don't count it this time"
+                onPress={() =>
+                  updateDay(date, { skipHoliday: true, timeOffHours: 0, timeOffType: '' })
+                }
+              />
+            </>
+          ) : entry.skipHoliday ? (
+            <>
+              <AppText tone="muted">Not counted as a holiday for you this time.</AppText>
+              <Button
+                label="Count it as a holiday"
+                onPress={() =>
+                  update({
+                    skipHoliday: false,
+                    timeOffHours: requiredHours,
+                    timeOffType: HOLIDAY_TIME_OFF_TYPE,
+                  })
+                }
+              />
+            </>
+          ) : entry.timeOffType !== HOLIDAY_TIME_OFF_TYPE ? (
+            <Button
+              label="Log as a company holiday"
+              onPress={() =>
+                update({ timeOffHours: requiredHours, timeOffType: HOLIDAY_TIME_OFF_TYPE })
+              }
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {warnings.map((w) => (
+        <AppText key={w} tone="warn">
+          ⚠ {w}
+        </AppText>
+      ))}
 
       <View
         style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -107,6 +172,11 @@ export default function DayScreen() {
               Shift in progress
             </AppText>
           ) : null}
+          {progress ? (
+            <AppText variant="caption" tone="accent">
+              {progress}
+            </AppText>
+          ) : null}
         </View>
         <View style={styles.stat}>
           <AppText variant="caption" tone="muted">
@@ -124,6 +194,11 @@ export default function DayScreen() {
           ) : min != null && min >= 24 ? (
             <AppText variant="caption" tone="muted">
               Next day
+            </AppText>
+          ) : null}
+          {usingUsualBreak ? (
+            <AppText variant="caption" tone="muted">
+              Includes your usual {usualBreakMinutes} min break
             </AppText>
           ) : null}
         </View>
@@ -262,6 +337,7 @@ const styles = StyleSheet.create({
   stat: { flex: 1, gap: 2 },
   pair: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   field: { gap: space.xs },
+  notice: { gap: space.sm, padding: space.md, borderRadius: radius.lg, borderWidth: 1 },
   comment: {
     minHeight: 96,
     borderWidth: 1,

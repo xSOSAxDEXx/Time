@@ -16,7 +16,10 @@ describe('settings store', () => {
     expect(s.requiredHours).toBe(8);
     expect(s.hourlyRate).toBeNull();
     expect(s.theme).toBe('system');
-    expect(s.paidTimeOffTypes).not.toContain('Unpaid');
+    expect(s.timeOffPay).toMatchObject({ PTO: 1, Unpaid: 0 });
+    expect(s.usualBreakMinutes).toBe(0);
+    expect(s.autoHolidays).toBe(true);
+    expect(s.holidays.map((h) => h.name)).toContain('Christmas Day');
   });
 
   it('updates and saves settings', async () => {

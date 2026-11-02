@@ -4,6 +4,7 @@ import { useSoftConfirm } from '@/hooks/useSoftConfirm';
 import { useEntries } from '@/store/entries';
 import { clockOutDate } from '@/timecard/clock';
 import { clockTimeOf, clockToHours, formatClock } from '@/timecard/dates';
+import type { Entries } from '@/timecard/types';
 import { space } from '@/theme';
 
 import { Button } from './Button';
@@ -14,8 +15,7 @@ const show = (t: string) => formatClock(clockToHours(t) ?? 0);
  * Big "Clock in now" / "Clock out now" for today (CLAUDE.md §3.1). Replacing a
  * time that's already set takes a second tap.
  */
-export function ClockButtons({ today }: { today: string }) {
-  const entries = useEntries((s) => s.entries);
+export function ClockButtons({ today, entries }: { today: string; entries: Entries }) {
   const { clockIn, clockOut } = useEntries.getState();
   const { armed, confirm } = useSoftConfirm();
 
@@ -23,8 +23,10 @@ export function ClockButtons({ today }: { today: string }) {
   const outDate = clockOutDate(entries, today);
   const ended = entries[outDate]?.end ?? '';
 
-  const doIn = () => clockIn(today, clockTimeOf(new Date()));
-  const doOut = () => clockOut(outDate, clockTimeOf(new Date()));
+  // `entries` includes holidays counted automatically, so clocking in on one
+  // keeps its time off (it can be changed in the day editor).
+  const doIn = () => clockIn(today, clockTimeOf(new Date()), entries[today]);
+  const doOut = () => clockOut(outDate, clockTimeOf(new Date()), entries[outDate]);
 
   const inLabel =
     armed === 'in'

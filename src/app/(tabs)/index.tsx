@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { Image, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
@@ -10,20 +9,31 @@ import { WeekFooter } from '@/components/WeekFooter';
 import { WeekNav } from '@/components/WeekNav';
 import { WeekTable } from '@/components/WeekTable';
 import { useHydrated } from '@/hooks/useHydrated';
+import { useNow } from '@/hooks/useNow';
+import { useTimeCard } from '@/hooks/useTimeCard';
 import { useToday } from '@/hooks/useToday';
 import { useEntries } from '@/store/entries';
 import { useSettings } from '@/store/settings';
-import { entryFor, weekStats } from '@/timecard/calc';
-import { mondayOf, weekDates } from '@/timecard/dates';
+import { useWeekView } from '@/store/weekView';
+import { dayWarnings, entryFor, weekStats } from '@/timecard/calc';
+import { addDays, minutesToHours, weekDates } from '@/timecard/dates';
 import { space, WIDE_BREAKPOINT } from '@/theme';
 
 const logo = require('@/assets/brand/logo-mark.png');
 
 export default function WeekScreen() {
   const today = useToday();
-  const [monday, setMonday] = useState(() => mondayOf(today));
-  const entries = useEntries((s) => s.entries);
+  const { monday, setMonday } = useWeekView();
   const settings = useSettings();
+  const now = new Date(useNow(30_000));
+  // The viewed week, plus today and yesterday for the clock buttons.
+  const yesterday = addDays(today, -1);
+  const sunday = addDays(monday, 6);
+  const { entries, holidays } = useTimeCard(
+    monday < yesterday ? monday : yesterday,
+    sunday > today ? sunday : today,
+  );
+  const usualBreakHours = minutesToHours(settings.usualBreakMinutes);
   const entriesReady = useHydrated(useEntries);
   const settingsReady = useHydrated(useSettings);
   const ready = entriesReady && settingsReady;
@@ -36,7 +46,7 @@ export default function WeekScreen() {
     .join(' · ');
 
   return (
-    <Screen wide={wide} footer={ready ? <ClockButtons today={today} /> : null}>
+    <Screen wide={wide} footer={ready ? <ClockButtons today={today} entries={entries} /> : null}>
       <View style={styles.header}>
         <Image source={logo} style={styles.logo} accessibilityIgnoresInvertColors alt="" />
         <View style={styles.headerText}>
@@ -54,6 +64,8 @@ export default function WeekScreen() {
               days={days}
               today={today}
               requiredHours={settings.requiredHours}
+              usualBreakHours={usualBreakHours}
+              holidays={holidays}
               locations={settings.locations}
               timeOffTypes={settings.timeOffTypes}
             />
@@ -64,7 +76,11 @@ export default function WeekScreen() {
                   key={e.date}
                   entry={e}
                   requiredHours={settings.requiredHours}
+                  usualBreakHours={usualBreakHours}
                   isToday={e.date === today}
+                  holiday={holidays.get(e.date)}
+                  warnings={dayWarnings(e, today)}
+                  now={now}
                   onPress={() => router.push({ pathname: '/day/[date]', params: { date: e.date } })}
                 />
               ))}

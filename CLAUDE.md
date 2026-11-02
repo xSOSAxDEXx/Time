@@ -93,6 +93,20 @@ These came from the owner's Excel formulas. Keep them in pure functions
 - Weeks run **Monday to Sunday**.
 - Required hours per day comes from Settings (default 8).
 
+Owner-approved additions (formula review, 2 Nov 2026):
+
+- **Usual break** (Settings, minutes, default off): while clocked in with
+  no break logged yet, min clock out adds the usual break.
+- **Hours so far** and **time left** to min clock out while clocked in.
+- **Odd-day checks**: a time off type with no hours, hours with no type,
+  still clocked in from before yesterday, a shift over 16 hours, a break
+  as long as the shift. Shown as a ⚠ line, never blocking.
+- **Worked-only average**: avg hours/week also shown without paid time off.
+- **Short weeks**: the Summary says how many weeks this year have fewer
+  than 5 days (and so are left out of the averages).
+- Weekend days still don't count as days worked (owner declined changing
+  it).
+
 ### 3.3 Week view (home screen)
 
 - One week at a time: Previous / This week / Next / pick a date.
@@ -106,8 +120,9 @@ These came from the owner's Excel formulas. Keep them in pure functions
 ### 3.4 Summaries
 
 - Stat cards: avg hours/week YTD (with number of full weeks), avg
-  hours/day YTD, this week's hours vs. the weekly target, today's min clock
-  out, total hours logged.
+  hours/day YTD, avg hours worked/week (no paid time off), this week's
+  hours vs. the weekly target, today's min clock out (with hours so far),
+  total hours logged this year.
 - **All weeks** list: week of, days worked, hours, avg/day, time off,
   status (current / full week / partial). Tap a week to open it.
 
@@ -128,8 +143,9 @@ These came from the owner's Excel formulas. Keep them in pure functions
 ### 3.6 Settings
 
 - Name, badge number, primary location (all optional, blank by default)
-- Required working hours per day (default 8)
+- Required working hours per day (default 8), usual break (default off)
 - Locations list and time off types list (editable)
+- Company holidays (3.10)
 - Theme: match system (default) / light / dark
 - Clock-out reminder settings (3.8) and pay settings (3.9)
 
@@ -168,14 +184,31 @@ These came from the owner's Excel formulas. Keep them in pure functions
 - Settings: hourly rate (blank = pay hidden everywhere), overtime rule.
 - Overtime rule options: **None**, **Over 40 hours a week at 1.5×**
   (default when a rate is set), custom threshold and multiplier.
+- **Time off pay per type** (owner request): **Not paid**, **Regular pay**
+  or **1.5× pay**. Defaults: PTO, Floating and Company Holiday at regular
+  pay; Unpaid not paid.
 - Only **hours worked** (on site + remote) count toward the overtime
-  threshold. Paid time off (PTO, Floating, Company Holiday) is paid at the
-  straight rate; **Unpaid** time off pays nothing. The owner can change
-  which time off types are paid in Settings.
+  threshold.
 - Show estimated pay in the week footer, the All weeks list, and the chart
   range summary.
 - Always labelled **"Estimated pay"**, with a note that it's before taxes
   and not an official pay stub.
+
+### 3.10 Company holidays (owner request)
+
+- Holidays are saved as **rules that repeat every year** (a fixed date, or
+  e.g. "4th Thursday of November", "the day after"), so they're never
+  re-entered. Fixed dates on a weekend move to the Friday before / Monday
+  after.
+- The standard list is the owner's company holidays: New Year's Day,
+  Memorial Day, Independence Day, Labor Day, Thanksgiving and the day
+  after, Christmas Day. Settings → Company holidays can add, remove or
+  reset them.
+- **Counted automatically** (on by default): a holiday with nothing logged
+  counts as a full day (required hours) of Company Holiday time off, from
+  the first day the person logged anything. Changing anything on that day
+  keeps the holiday time off; the day editor can leave a holiday out for
+  one year ("Don't count it this time").
 
 ## 4. Design
 

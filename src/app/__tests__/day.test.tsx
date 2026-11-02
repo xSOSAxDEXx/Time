@@ -12,7 +12,7 @@ const at = (h: number, m: number) => new Date(2030, 0, 7, h, m);
 
 beforeEach(() => {
   useEntries.setState({ entries: {} });
-  useSettings.getState().replaceAll({});
+  useSettings.getState().replaceAll({ holidays: [] });
 });
 
 async function openDay(date = '2030-01-07') {

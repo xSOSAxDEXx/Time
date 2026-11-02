@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
-import { useEntries } from '@/store/entries';
+import { useEntries, type EntryPatch } from '@/store/entries';
 import { isEmptyEntry, type Entry } from '@/timecard/types';
-import { metMinClockOut, minClockOut, totalWorked } from '@/timecard/calc';
+import { dayWarnings, metMinClockOut, minClockOut, totalWorked } from '@/timecard/calc';
 import {
   DAY_NAMES,
   formatClock,
@@ -24,6 +24,8 @@ type Props = {
   days: Entry[];
   today: string;
   requiredHours: number;
+  usualBreakHours: number;
+  holidays: Map<string, string>;
   locations: string[];
   timeOffTypes: string[];
 };
@@ -49,7 +51,7 @@ function CommentCell({ entry, label }: { entry: Entry; label: string }) {
   const [hover, setHover] = useState(false);
   const save = () => {
     if (draft != null && draft !== entry.comment) {
-      useEntries.getState().updateDay(entry.date, { comment: draft });
+      useEntries.getState().updateDay(entry.date, { comment: draft }, entry);
     }
     setDraft(null);
   };
@@ -86,9 +88,18 @@ function CommentCell({ entry, label }: { entry: Entry; label: string }) {
 }
 
 /** The whole week as an editable table, for wide screens (CLAUDE.md §3.3). */
-export function WeekTable({ days, today, requiredHours, locations, timeOffTypes }: Props) {
+export function WeekTable({
+  days,
+  today,
+  requiredHours,
+  usualBreakHours,
+  holidays,
+  locations,
+  timeOffTypes,
+}: Props) {
   const { colors } = useTheme();
-  const update = useEntries.getState().updateDay;
+  // Passing the shown day keeps an automatic holiday's time off on the first edit.
+  const update = (e: Entry, patch: EntryPatch) => useEntries.getState().updateDay(e.date, patch, e);
   return (
     <View
       role="table"
@@ -110,7 +121,9 @@ export function WeekTable({ days, today, requiredHours, locations, timeOffTypes 
       {days.map((e, i) => {
         const name = DAY_NAMES[weekdayIndex(e.date)];
         const isToday = e.date === today;
-        const min = minClockOut(e, requiredHours);
+        const min = minClockOut(e, requiredHours, usualBreakHours);
+        const warnings = dayWarnings(e, today);
+        const holiday = holidays.get(e.date);
         const met = metMinClockOut(e, requiredHours);
         const label = (field: string) => `${name} ${field}`;
         return (
@@ -129,13 +142,26 @@ export function WeekTable({ days, today, requiredHours, locations, timeOffTypes 
                 {formatShortDate(e.date)}
                 {isToday ? ' · today' : ''}
               </AppText>
+              {holiday ? (
+                <AppText variant="caption" tone="accent" numberOfLines={1}>
+                  {holiday}
+                </AppText>
+              ) : null}
+              {warnings.length ? (
+                <AppText
+                  variant="caption"
+                  tone="warn"
+                  accessibilityLabel={`Check: ${warnings.join(' ')}`}>
+                  ⚠ {warnings[0]}
+                </AppText>
+              ) : null}
             </View>
             <View style={{ width: COLUMNS[1][1] }}>
               <TimeField
                 compact
                 label={label('start shift')}
                 value={e.start}
-                onChange={(start) => update(e.date, { start })}
+                onChange={(start) => update(e, { start })}
               />
             </View>
             <View style={{ width: COLUMNS[2][1] }}>
@@ -143,7 +169,7 @@ export function WeekTable({ days, today, requiredHours, locations, timeOffTypes 
                 compact
                 label={label('end shift')}
                 value={e.end}
-                onChange={(end) => update(e.date, { end })}
+                onChange={(end) => update(e, { end })}
               />
             </View>
             <View style={{ width: COLUMNS[3][1] }}>
@@ -159,7 +185,7 @@ export function WeekTable({ days, today, requiredHours, locations, timeOffTypes 
                 unit="minutes"
                 label={label('break')}
                 value={hoursToMinutes(e.breakHours)}
-                onChange={(m) => update(e.date, { breakHours: minutesToHours(m) })}
+                onChange={(m) => update(e, { breakHours: minutesToHours(m) })}
               />
             </View>
             <View style={{ width: COLUMNS[5][1] }}>
@@ -169,7 +195,7 @@ export function WeekTable({ days, today, requiredHours, locations, timeOffTypes 
                 max={24}
                 label={label('remote or outside work')}
                 value={e.remoteHours}
-                onChange={(remoteHours) => update(e.date, { remoteHours })}
+                onChange={(remoteHours) => update(e, { remoteHours })}
               />
             </View>
             <View style={{ width: COLUMNS[6][1] }}>
@@ -179,7 +205,7 @@ export function WeekTable({ days, today, requiredHours, locations, timeOffTypes 
                 max={24}
                 label={label('time off')}
                 value={e.timeOffHours}
-                onChange={(timeOffHours) => update(e.date, { timeOffHours })}
+                onChange={(timeOffHours) => update(e, { timeOffHours })}
               />
             </View>
             <View style={{ width: COLUMNS[7][1] }}>
@@ -195,7 +221,7 @@ export function WeekTable({ days, today, requiredHours, locations, timeOffTypes 
                 label={label('time off type')}
                 options={timeOffTypes}
                 value={e.timeOffType}
-                onChange={(timeOffType) => update(e.date, { timeOffType })}
+                onChange={(timeOffType) => update(e, { timeOffType })}
               />
             </View>
             <View style={{ width: COLUMNS[9][1] }}>
@@ -203,7 +229,7 @@ export function WeekTable({ days, today, requiredHours, locations, timeOffTypes 
                 label={label('travel')}
                 options={['Yes', 'No']}
                 value={e.travel}
-                onChange={(travel) => update(e.date, { travel: travel as Entry['travel'] })}
+                onChange={(travel) => update(e, { travel: travel as Entry['travel'] })}
               />
             </View>
             <View style={{ width: COLUMNS[10][1] }}>
@@ -211,7 +237,7 @@ export function WeekTable({ days, today, requiredHours, locations, timeOffTypes 
                 label={label('location')}
                 options={locations}
                 value={e.location}
-                onChange={(location) => update(e.date, { location })}
+                onChange={(location) => update(e, { location })}
               />
             </View>
             <CommentCell entry={e} label={label('comment')} />

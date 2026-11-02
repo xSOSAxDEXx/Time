@@ -1,6 +1,8 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import {
+  hoursLeft,
+  hoursSoFar,
   isInProgress,
   isOvernight,
   metMinClockOut,
@@ -11,6 +13,7 @@ import {
   clockToHours,
   DAY_NAMES,
   formatClock,
+  formatDuration,
   formatHours,
   formatShortDate,
   weekdayIndex,
@@ -23,7 +26,14 @@ import { AppText } from './AppText';
 type Props = {
   entry: Entry;
   requiredHours: number;
+  usualBreakHours: number;
   isToday: boolean;
+  /** The company holiday on this date, if any. */
+  holiday?: string;
+  /** Things that look like a mistake (dayWarnings). */
+  warnings: string[];
+  /** For hours so far while clocked in. */
+  now: Date;
   onPress: () => void;
 };
 
@@ -36,21 +46,46 @@ export function daySummary(e: Entry): string {
     return `${clock(e.start)} – ${clock(e.end)}${isOvernight(e) ? ' (next day)' : ''}`;
   if (e.end) return `Out at ${clock(e.end)}`;
   const parts = [];
-  if (e.timeOffHours) parts.push(`${e.timeOffType || 'Time off'} ${formatHours(e.timeOffHours)} h`);
-  if (e.remoteHours) parts.push(`Remote ${formatHours(e.remoteHours)} h`);
+  // A no-break space keeps "8.00 h" together when the line wraps.
+  if (e.timeOffHours)
+    parts.push(`${e.timeOffType || 'Time off'} ${formatHours(e.timeOffHours)}\u00a0h`);
+  if (e.remoteHours) parts.push(`Remote ${formatHours(e.remoteHours)}\u00a0h`);
   return parts.join(' · ') || 'Nothing logged';
 }
 
+/** "4.25 h so far · 3:45 left" while clocked in, otherwise ''. */
+export function progressText(
+  e: Entry,
+  now: Date,
+  requiredHours: number,
+  usualBreakHours: number,
+): string {
+  const soFar = hoursSoFar(e, now);
+  const left = hoursLeft(e, now, requiredHours, usualBreakHours);
+  if (soFar == null || left == null) return '';
+  return `${formatHours(soFar)} h so far · ${left > 0 ? `${formatDuration(left)} left` : 'hours met'}`;
+}
+
 /** One day of the week on a phone: tap to edit (CLAUDE.md §3.3). */
-export function DayRow({ entry, requiredHours, isToday, onPress }: Props) {
+export function DayRow({
+  entry,
+  requiredHours,
+  usualBreakHours,
+  isToday,
+  holiday,
+  warnings,
+  now,
+  onPress,
+}: Props) {
   const { colors } = useTheme();
   const date = entry.date;
   const empty = isEmptyEntry(entry);
   const weekend = weekdayIndex(date) >= 5;
   const total = totalWorked(entry);
-  const min = minClockOut(entry, requiredHours);
+  const min = minClockOut(entry, requiredHours, usualBreakHours);
   const met = metMinClockOut(entry, requiredHours);
   const summary = daySummary(entry);
+  const progress = progressText(entry, now, requiredHours, usualBreakHours);
 
   let minText = '';
   let minTone: 'good' | 'warn' | 'muted' = 'muted';
@@ -63,10 +98,13 @@ export function DayRow({ entry, requiredHours, isToday, onPress }: Props) {
   const name = DAY_NAMES[weekdayIndex(date)];
   const a11y = [
     `${name}, ${formatShortDate(date)}${isToday ? ', today' : ''}`,
+    holiday ? `${holiday}${entry.holiday ? ', counted as a company holiday' : ''}` : '',
     summary,
+    progress,
     empty ? '' : `${formatHours(total)} hours`,
     minText.replace('✓ ', ''),
     entry.comment ? `Comment: ${entry.comment}` : '',
+    ...warnings.map((w) => `Check: ${w}`),
   ]
     .filter(Boolean)
     .join('. ');
@@ -97,9 +135,19 @@ export function DayRow({ entry, requiredHours, isToday, onPress }: Props) {
         ) : null}
       </View>
       <View style={styles.middle}>
+        {holiday ? (
+          <AppText variant="caption" tone="accent">
+            {holiday}
+          </AppText>
+        ) : null}
         <AppText variant="body" tone={empty ? 'muted' : 'primary'}>
           {summary}
         </AppText>
+        {progress ? (
+          <AppText variant="caption" tone="accent">
+            {progress}
+          </AppText>
+        ) : null}
         {minText ? (
           <AppText variant="caption" tone={minTone}>
             {minText}
@@ -110,6 +158,11 @@ export function DayRow({ entry, requiredHours, isToday, onPress }: Props) {
             {entry.comment}
           </AppText>
         ) : null}
+        {warnings.map((w) => (
+          <AppText key={w} variant="caption" tone="warn">
+            ⚠ {w}
+          </AppText>
+        ))}
       </View>
       <AppText variant="number" tone={empty ? 'muted' : 'primary'} style={styles.total}>
         {empty ? '—' : formatHours(total)}

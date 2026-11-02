@@ -202,6 +202,7 @@ describe('all weeks and year to date', () => {
     expect(yearToDate({}, '2030-01-10')).toEqual({
       avgPerWeek: 0,
       avgPerDay: 0,
+      avgWorkedPerWeek: 0,
       fullWeeks: 0,
       totalHours: 0,
     });

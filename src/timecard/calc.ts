@@ -1,4 +1,4 @@
-import { addDays, clockToHours, isWeekday, mondayOf, weekDates } from './dates';
+import { addDays, clockToHours, fromKey, isWeekday, mondayOf, weekDates } from './dates';
 import { emptyEntry, isEmptyEntry, type DateKey, type Entries, type Entry } from './types';
 
 /**
@@ -54,18 +54,89 @@ export function totalWorked(e: Entry): number {
 }
 
 /**
+ * The break min clock out uses: the logged break, or while the shift is
+ * still going with no break logged yet, the usual break from Settings (so
+ * the morning estimate isn't too early).
+ */
+export function plannedBreak(e: Entry, usualBreakHours = 0): number {
+  return isInProgress(e) && !e.breakHours ? usualBreakHours : e.breakHours;
+}
+
+/**
  * Min clock out = Start + Required hours − Time off − Remote + Break, in
  * hours since midnight of the day's date (above 24 means the next day).
  * Null when there's no start time.
  */
-export function minClockOut(e: Entry, requiredHours: number): number | null {
+export function minClockOut(e: Entry, requiredHours: number, usualBreakHours = 0): number | null {
   const start = clockToHours(e.start);
   if (start == null) return null;
-  return start + requiredHours - e.timeOffHours - e.remoteHours + e.breakHours;
+  return start + requiredHours - e.timeOffHours - e.remoteHours + plannedBreak(e, usualBreakHours);
+}
+
+/** When the shift started, as a Date. */
+function startDate(e: Entry): Date | null {
+  const start = clockToHours(e.start);
+  if (start == null) return null;
+  const d = fromKey(e.date);
+  d.setMinutes(Math.round(start * 60));
+  return d;
+}
+
+/**
+ * Hours worked so far while clocked in: time since the start, plus remote and
+ * time off, minus any break logged so far. Null when not clocked in.
+ */
+export function hoursSoFar(e: Entry, now: Date): number | null {
+  const start = startDate(e);
+  if (!isInProgress(e) || !start) return null;
+  const elapsed = Math.max(0, (now.getTime() - start.getTime()) / 3_600_000);
+  return elapsed + e.remoteHours + e.timeOffHours - e.breakHours;
+}
+
+/**
+ * Hours left until min clock out while clocked in (0 once reached), or null
+ * when not clocked in.
+ */
+export function hoursLeft(
+  e: Entry,
+  now: Date,
+  requiredHours: number,
+  usualBreakHours = 0,
+): number | null {
+  const min = minClockOut(e, requiredHours, usualBreakHours);
+  if (!isInProgress(e) || min == null) return null;
+  const minAt = fromKey(e.date);
+  minAt.setMinutes(Math.round(min * 60));
+  return Math.max(0, (minAt.getTime() - now.getTime()) / 3_600_000);
+}
+
+/** A shift longer than this is probably a missed clock out. */
+export const LONG_SHIFT_HOURS = 16;
+
+/**
+ * Things about a day that look like a mistake (owner-approved check). Each is
+ * a short sentence for the screen.
+ */
+export function dayWarnings(e: Entry, today: string): string[] {
+  const out: string[] = [];
+  if (e.timeOffType && !e.timeOffHours) out.push(`${e.timeOffType} is set, but with no hours.`);
+  if (e.timeOffHours && !e.timeOffType) out.push('Time off hours, but no time off type.');
+  if (isInProgress(e) && e.date < addDays(today, -1)) {
+    out.push('Still clocked in from this day. Missed a clock out?');
+  }
+  const span = shiftSpan(e);
+  if (e.end && span > LONG_SHIFT_HOURS) {
+    out.push(`A ${Math.round(span)}-hour shift. Is the end time right?`);
+  }
+  if (e.start && e.end && e.breakHours > 0 && e.breakHours >= span) {
+    out.push('The break is as long as the shift.');
+  }
+  return out;
 }
 
 /** Whether the day's end time reaches its min clock out (null until both exist). */
 export function metMinClockOut(e: Entry, requiredHours: number): boolean | null {
+  // Only once there's an end time, so the logged break always applies.
   const min = minClockOut(e, requiredHours);
   const end = endHours(e);
   if (min == null || end == null) return null;
@@ -88,6 +159,32 @@ export function entryFor(entries: Entries, date: DateKey): Entry {
   return entries[date] ?? emptyEntry(date);
 }
 
+/** The time off type holidays are logged as. */
+export const HOLIDAY_TIME_OFF_TYPE = 'Company Holiday';
+
+/** The fields a company holiday fills in: a full day of Company Holiday time off. */
+export function holidayFields(name: string, requiredHours: number) {
+  return { timeOffHours: requiredHours, timeOffType: HOLIDAY_TIME_OFF_TYPE, holiday: name };
+}
+
+/**
+ * The entries plus the company holidays in `holidays` that have nothing
+ * logged (owner request: holidays count without re-entering them). A day
+ * marked `skipHoliday` keeps what was logged instead.
+ */
+export function withHolidays(
+  entries: Entries,
+  holidays: Map<DateKey, string>,
+  requiredHours: number,
+): Entries {
+  if (!holidays.size) return entries;
+  const out = { ...entries };
+  for (const [date, name] of holidays) {
+    if (!out[date]) out[date] = { ...emptyEntry(date), ...holidayFields(name, requiredHours) };
+  }
+  return out;
+}
+
 export type WeekStats = {
   monday: DateKey;
   /** Sum of positive day totals, Monday–Sunday. */
@@ -96,6 +193,8 @@ export type WeekStats = {
   daysWorked: number;
   /** Hours ÷ days worked (0 when no days worked). */
   avgPerDay: number;
+  /** Hours actually worked: on site + remote, without time off. */
+  workedHours: number;
   timeOffHours: number;
   /** More than 4 days worked. */
   full: boolean;
@@ -106,10 +205,13 @@ export function weekStats(entries: Entries, anyDayInWeek: DateKey): WeekStats {
   let hours = 0;
   let daysWorked = 0;
   let timeOffHours = 0;
+  let workedHours = 0;
   for (const date of weekDates(monday)) {
     const e = entryFor(entries, date);
     const total = totalWorked(e);
     if (total > 0) hours += total;
+    const parts = dayParts(e);
+    workedHours += parts.onSite + parts.remote;
     if (isWeekday(date) && total > WORKED_DAY_MIN_HOURS) daysWorked++;
     timeOffHours += e.timeOffHours;
   }
@@ -118,6 +220,7 @@ export function weekStats(entries: Entries, anyDayInWeek: DateKey): WeekStats {
     hours,
     daysWorked,
     avgPerDay: daysWorked ? hours / daysWorked : 0,
+    workedHours,
     timeOffHours,
     full: daysWorked >= FULL_WEEK_MIN_DAYS,
   };
@@ -151,6 +254,8 @@ export type YearToDate = {
   avgPerWeek: number;
   /** avgPerWeek ÷ 5. */
   avgPerDay: number;
+  /** Like avgPerWeek, but hours actually worked only (no paid time off). */
+  avgWorkedPerWeek: number;
   fullWeeks: number;
   /** Every positive day total this year. */
   totalHours: number;
@@ -164,10 +269,13 @@ export function yearToDate(entries: Entries, today: DateKey): YearToDate {
   const year = today.slice(0, 4);
   const weeks = allWeeks(entries, today).filter((w) => w.monday.startsWith(year));
   const full = weeks.filter((w) => w.full);
-  const avgPerWeek = full.length ? full.reduce((sum, w) => sum + w.hours, 0) / full.length : 0;
+  const average = (pick: (w: WeekStats) => number) =>
+    full.length ? full.reduce((sum, w) => sum + pick(w), 0) / full.length : 0;
+  const avgPerWeek = average((w) => w.hours);
   return {
     avgPerWeek,
     avgPerDay: avgPerWeek / 5,
+    avgWorkedPerWeek: average((w) => w.workedHours),
     fullWeeks: full.length,
     totalHours: weeks.reduce((sum, w) => sum + w.hours, 0),
   };

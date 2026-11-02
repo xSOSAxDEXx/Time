@@ -3,6 +3,7 @@ import { renderRouter } from 'expo-router/testing-library';
 
 import { useEntries } from '@/store/entries';
 import { useSettings } from '@/store/settings';
+import { useWeekView } from '@/store/weekView';
 import { emptyEntry } from '@/timecard/types';
 
 import DayScreen from '../day/[date]';
@@ -21,7 +22,8 @@ const WED = new Date(2030, 0, 9, 8, 2);
 beforeEach(() => {
   jest.useFakeTimers({ now: WED });
   useEntries.setState({ entries: {} });
-  useSettings.getState().replaceAll({});
+  useWeekView.getState().setMonday('2030-01-07');
+  useSettings.getState().replaceAll({ holidays: [] });
 });
 
 afterEach(() => jest.useRealTimers());
@@ -110,7 +112,7 @@ describe('week screen', () => {
     expect(
       screen.getByLabelText('Week total: 16.00. Days worked: 2. Avg hours worked WTD: 8.00'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('PTO 8.00 h')).toBeOnTheScreen();
+    expect(screen.getByText('PTO 8.00\u00a0h')).toBeOnTheScreen();
   });
 
   it('shows the start of a long comment and opens the day on tap', async () => {
@@ -124,5 +126,62 @@ describe('week screen', () => {
     await fireEvent.press(screen.getByLabelText(/^Monday, Jan 7/));
     expect(await screen.findByRole('header', { name: 'Monday, Jan 7, 2030' })).toBeOnTheScreen();
     expect(screen.getByDisplayValue('Drove to the client site')).toBeOnTheScreen();
+  });
+});
+
+describe('week screen extras', () => {
+  it('shows hours so far and time left while clocked in, with the usual break', async () => {
+    useSettings.getState().update({ usualBreakMinutes: 30 });
+    useEntries.getState().updateDay('2030-01-09', { start: '08:02' });
+    await act(async () => jest.setSystemTime(new Date(2030, 0, 9, 12, 2)));
+    await open();
+    expect(screen.getByText('4.00 h so far · 4:30 left')).toBeOnTheScreen();
+    expect(screen.getByText('Min out 4:32 PM')).toBeOnTheScreen();
+  });
+
+  it('flags odd days', async () => {
+    useEntries.getState().updateDay('2030-01-07', { timeOffType: 'PTO' });
+    await open();
+    expect(screen.getByText('⚠ PTO is set, but with no hours.')).toBeOnTheScreen();
+  });
+
+  it('counts a company holiday automatically and keeps it when clocking in', async () => {
+    useSettings.getState().update({
+      holidays: [{ kind: 'fixed', id: 'h', name: 'Test Day', month: 1, day: 9, observed: true }],
+    });
+    useEntries.getState().updateDay('2030-01-07', { start: '08:00', end: '16:00' });
+    await open();
+    expect(screen.getByText('Test Day')).toBeOnTheScreen();
+    expect(screen.getByText('Company Holiday 8.00\u00a0h')).toBeOnTheScreen();
+    expect(screen.getByLabelText(/^Week total: 16\.00\. Days worked: 2/)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Clock in now' }));
+    expect(useEntries.getState().entries['2030-01-09']).toMatchObject({
+      start: '08:02',
+      timeOffHours: 8,
+      timeOffType: 'Company Holiday',
+    });
+  });
+
+  it('lets a holiday be left out for one day', async () => {
+    useSettings.getState().update({
+      holidays: [{ kind: 'fixed', id: 'h', name: 'Test Day', month: 1, day: 9, observed: true }],
+    });
+    useEntries.getState().updateDay('2030-01-07', { start: '08:00', end: '16:00' });
+    await open();
+    await fireEvent.press(screen.getByLabelText(/^Wednesday, Jan 9/));
+    await screen.findByRole('header', { name: 'Wednesday, Jan 9, 2030' });
+    expect(screen.getByText('Counted as a company holiday (8.00 hours).')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: "Don't count it this time" }));
+    expect(useEntries.getState().entries['2030-01-09']).toMatchObject({
+      skipHoliday: true,
+      timeOffHours: 0,
+    });
+    expect(screen.getByText('Not counted as a holiday for you this time.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Count it as a holiday' }));
+    expect(useEntries.getState().entries['2030-01-09']).toMatchObject({
+      skipHoliday: false,
+      timeOffHours: 8,
+      timeOffType: 'Company Holiday',
+    });
   });
 });
