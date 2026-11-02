@@ -137,6 +137,10 @@ These came from the owner's Excel formulas. Keep them in pure functions
   Unreadable parts of a file are skipped, not trusted.
 - **Export CSV:** opens in Excel; same columns as the HTML export.
 - **The app starts empty.** No sample or personal data ships with it.
+- **Restore also reads the time card HTML page's files**: its data file
+  (`timecard-data.json`) and its Backup file. This is how the owner moves
+  their own history into the app, on their own device. Their data is never
+  bundled, committed or loaded for anyone else.
 
 ### 3.8 Clock-out reminder (new)
 
@@ -187,9 +191,10 @@ HTML page.
 ### Logo & name
 
 - Name: **Clocked**
-- Logo: a simple clock face with a check mark as one of the hands, blue on
-  white (and an adaptive Android icon). Build it as an SVG and generate all
-  icon sizes from it, like Luna (`npm run icons`).
+- Logo: **a fist crushing a clock**: a fist in a suit sleeve gripping a
+  cracked alarm clock, with shards flying off, on the brand blue. Built as
+  an SVG (`assets/brand/logo-mark.svg`); every icon size comes from it, like
+  Luna (`npm run icons`).
 
 ## 5. Suggested structure (mirror Luna)
 
@@ -216,7 +221,8 @@ docs/               # PROGRESS.md, android-testing.md, ...
 3. **Week view + day editor + clock in/out.**
 4. **Summaries, All weeks and Settings.**
 5. **Charts.**
-6. **Backup/restore and CSV export.**
+6. **Backup/restore and CSV export** (restore also reads the HTML page's
+   data and backup files).
 7. **Clock-out reminder.**
 8. **Pay calculator.**
 9. **Polish, accessibility pass, device testing** (Android APK + iPhone

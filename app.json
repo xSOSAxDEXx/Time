@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "Clocked",
+    "slug": "clocked",
+    "description": "Your personal time card. Clock in, clock out, know where you stand.",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/brand/icon.png",
+    "scheme": "clocked",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F6F7F9",
+    "ios": {
+      "bundleIdentifier": "com.clocked.app",
+      "supportsTablet": true,
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.clocked.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/adaptive-foreground.png",
+        "backgroundImage": "./assets/brand/adaptive-background.png",
+        "monochromeImage": "./assets/brand/adaptive-monochrome.png",
+        "backgroundColor": "#1D4ED8"
+      },
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 1,
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/brand/favicon.png",
+      "name": "Clocked",
+      "shortName": "Clocked",
+      "themeColor": "#1D4ED8",
+      "backgroundColor": "#F6F7F9",
+      "description": "Your personal time card. Clock in, clock out, know where you stand."
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1D4ED8",
+          "image": "./assets/brand/splash-icon.png",
+          "imageWidth": 200
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

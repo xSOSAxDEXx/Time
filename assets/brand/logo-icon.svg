@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+    <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+         <stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#1D4ED8"/>
+       </linearGradient></defs><rect width="1024" height="1024" fill="url(#bg)"/><g transform="translate(40.95999999999998 40.95999999999998) scale(0.92)">
+  <!-- Clocked mark: a fist crushing an alarm-style clock. Transparent background;
+       scripts/generate-icons.mjs places it on the brand blue. -->
+  <g stroke-linejoin="round" stroke-linecap="round">
+    <!-- motion / impact lines -->
+    <g stroke="#FFFFFF" stroke-width="22" opacity=".9">
+      <path d="M118 300 L58 262"/>
+      <path d="M100 420 L34 414"/>
+      <path d="M128 640 L66 676"/>
+    </g>
+
+    <!-- flying shards and a spring -->
+    <path d="M176 228 L232 196 L222 262 Z" fill="#FFFFFF" stroke="#0F1B33" stroke-width="14"/>
+    <path d="M150 742 L214 726 L188 786 Z" fill="#FFFFFF" stroke="#0F1B33" stroke-width="14"/>
+    <path d="M270 120 L304 90 L312 140 Z" fill="#FFD166" stroke="#0F1B33" stroke-width="12"/>
+    <path d="M196 840 q-24 -22 0 -40 q24 -18 0 -40 q-24 -22 0 -40" fill="none" stroke="#0F1B33" stroke-width="14"/>
+
+    <!-- the clock, squashed in the middle by the fist (wider top and bottom lobes) -->
+    <g transform="rotate(-10 470 512)">
+      <!-- bells -->
+      <path d="M300 214 a70 70 0 0 1 120 -66 z" fill="#FFD166" stroke="#0F1B33" stroke-width="18"/>
+      <path d="M560 148 a70 70 0 0 1 120 66 z" fill="#FFD166" stroke="#0F1B33" stroke-width="18"/>
+      <path d="M470 168 v-34" stroke="#0F1B33" stroke-width="22"/>
+      <!-- body -->
+      <path d="M470 170
+               C 660 170 760 270 742 382
+               C 730 452 700 470 700 512
+               C 700 556 734 580 742 646
+               C 760 760 650 860 470 860
+               C 290 860 180 760 198 646
+               C 206 580 240 556 240 512
+               C 240 470 210 452 198 382
+               C 180 270 280 170 470 170 Z"
+            fill="#FFFFFF" stroke="#0F1B33" stroke-width="26"/>
+      <!-- ticks -->
+      <g stroke="#0F1B33" stroke-width="18">
+        <path d="M470 212 v44"/>
+        <path d="M470 818 v-44"/>
+      </g>
+      <!-- hands, bent -->
+      <path d="M470 330 L470 250" stroke="#2563EB" stroke-width="22"/>
+      <path d="M470 330 L560 280 L600 296" stroke="#0F1B33" stroke-width="18" fill="none"/>
+      <circle cx="470" cy="330" r="16" fill="#0F1B33"/>
+      <!-- cracks -->
+      <g stroke="#0F1B33" stroke-width="10" fill="none">
+        <path d="M250 430 L300 400 L290 360 L340 330"/>
+        <path d="M262 660 L310 690 L298 730 L350 752"/>
+        <path d="M700 690 L650 720 L668 770"/>
+      </g>
+      <!-- legs -->
+      <path d="M300 830 L262 900" stroke="#0F1B33" stroke-width="30"/>
+      <path d="M640 830 L678 900" stroke="#0F1B33" stroke-width="30"/>
+    </g>
+
+    <!-- the fist: hand comes in from the right, fingers wrap around the front -->
+    <g stroke="#0F1B33" stroke-width="18">
+      <!-- sleeve -->
+      <path d="M836 560 L1010 520 L1010 900 L870 930 Z" fill="#0F1B33"/>
+      <path d="M836 560 L872 552 L908 922 L870 930 Z" fill="#FFFFFF" stroke="none"/>
+      <!-- back of the hand and wrist -->
+      <path d="M630 372 C 740 344 830 360 860 420 C 880 460 884 520 876 600
+               C 870 680 880 740 870 790 C 800 812 720 812 640 796 Z" fill="#F4B183"/>
+      <!-- fingers (fingertips on the left, knuckles hidden behind the thumb) -->
+      <rect x="300" y="356" width="420" height="104" rx="52" fill="#F4B183"/>
+      <rect x="284" y="456" width="446" height="108" rx="54" fill="#F4B183"/>
+      <rect x="296" y="560" width="434" height="106" rx="53" fill="#F4B183"/>
+      <rect x="330" y="662" width="390" height="98" rx="49" fill="#F4B183"/>
+      <!-- fingernails peeking on the left -->
+      <g stroke-width="10" fill="#FBD7BC">
+        <path d="M318 384 q-10 24 0 48 q30 4 38 -24 q-8 -28 -38 -24 z"/>
+        <path d="M302 486 q-10 24 0 48 q30 4 38 -24 q-8 -28 -38 -24 z"/>
+        <path d="M314 588 q-10 24 0 48 q30 4 38 -24 q-8 -28 -38 -24 z"/>
+        <path d="M348 688 q-10 22 0 44 q28 4 36 -22 q-8 -26 -36 -22 z"/>
+      </g>
+      <!-- finger creases -->
+      <g stroke-width="10" fill="none" opacity=".5">
+        <path d="M470 380 q14 28 0 56"/>
+        <path d="M462 482 q14 28 0 56"/>
+        <path d="M470 586 q14 28 0 56"/>
+        <path d="M490 686 q14 26 0 50"/>
+      </g>
+      <!-- thumb: lies diagonally across the index and middle fingers -->
+      <path d="M856 452 C 800 410 700 418 600 452 C 540 472 512 492 516 520
+               C 520 548 556 556 600 548 C 700 530 790 524 862 540 Z" fill="#F4B183"/>
+      <path d="M534 506 q4 -26 36 -32 q20 14 14 40 q-28 14 -50 -8 z" fill="#FBD7BC" stroke-width="10"/>
+      <!-- knuckle highlights -->
+      <g stroke="#FFFFFF" stroke-width="12" opacity=".55" fill="none">
+        <path d="M640 384 q30 -8 56 0"/>
+        <path d="M660 480 q-6 -2 0 0"/>
+      </g>
+    </g>
+  </g>
+</g></svg>
