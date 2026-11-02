@@ -77,7 +77,7 @@ On iPhone, open the site in Safari, tap Share → **Add to Home Screen**.
 ```
 src/app/          Screens (Expo Router)
 src/components/   Shared UI
-src/timecard/     Entry type, date helpers, spreadsheet formulas
+src/timecard/     Entry type, date helpers, spreadsheet formulas, holiday rules
 src/store/        Persisted entries and settings
 src/hooks/        Small shared hooks
 src/theme/        Colours, type, spacing

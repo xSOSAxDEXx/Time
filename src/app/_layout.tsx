@@ -40,6 +40,7 @@ export default function RootLayout() {
         }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="day/[date]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="holidays" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
   );

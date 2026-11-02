@@ -33,6 +33,10 @@ _Last updated: 2 Nov 2026._
   backup file, so the owner can import their own history on their device.
   It is never bundled or committed; the app starts empty for everyone.
 - **Times:** give all times to the owner in US Eastern time.
+- **Company holidays** (§3.10): the owner's 2026 list became repeating
+  rules and the standard list; counted automatically.
+- **Pay rates:** overtime None / 1.5× / custom; each time off type Not
+  paid / Regular / 1.5× (§3.9). Estimates show from step 8.
 
 ## Defaults I chose (owner can change)
 
@@ -55,26 +59,17 @@ _Last updated: 2 Nov 2026._
   time, so a day never shows a negative total (formula review).
 - Default locations are generic (Main office, Remote, Client site, Vendor,
   Other); time off types are PTO, Floating, Company Holiday, Unpaid.
+- Holidays count from the first day anything was logged, so they never
+  add weeks from before you started using the app.
+- Clocking in on a holiday keeps its 8 hours of holiday time off (change it
+  in the day editor if it doesn't apply).
+- "Long shift" warning above 16 hours; "still clocked in" warning for a
+  shift with no end from before yesterday.
 
-## Formula review: suggestions waiting for the owner
+## Formula review (2 Nov 2026)
 
-Not built; each would need the owner's OK (CLAUDE.md §7):
-
-1. **Usual break**: a setting (e.g. 20 min) added to min clock out until
-   the real break is logged, so min clock out isn't too early in the
-   morning.
-2. **Hours so far** while clocked in, and the time left to min clock out.
-3. **Check odd days**: flag a time off type with no hours (or hours with no
-   type), and very long shifts (likely a missed clock out).
-4. **Averages include paid time off.** Avg hours/week counts PTO hours, so
-   it's "hours paid" more than "hours worked". Option: also show a
-   worked-only average.
-5. **Weekends:** weekend hours count toward the week, but weekend days
-   don't count as days worked, which pushes avg hours/day up. Option to
-   count weekend days worked.
-6. **Short weeks:** a week with an unlogged holiday has 4 days, isn't
-   "full", and drops out of the year-to-date average. Logging holidays as
-   Company Holiday time off avoids it; the app could remind about it.
+The owner approved suggestions 1–4 and 6 and declined 5 (weekend days
+counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
 
 ## Waiting on the owner
 
