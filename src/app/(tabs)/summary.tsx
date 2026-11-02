@@ -7,11 +7,13 @@ import { Screen } from '@/components/Screen';
 import { StatCard } from '@/components/StatCard';
 import { useHydrated } from '@/hooks/useHydrated';
 import { useNow } from '@/hooks/useNow';
+import { usePayRule } from '@/hooks/usePayRule';
 import { useTimeCard } from '@/hooks/useTimeCard';
 import { useToday } from '@/hooks/useToday';
 import { useEntries } from '@/store/entries';
 import { useSettings } from '@/store/settings';
 import { useWeekView } from '@/store/weekView';
+import { formatMoney, showsPay, weekPay } from '@/timecard/pay';
 import {
   allWeeks,
   entryFor,
@@ -54,6 +56,9 @@ export default function SummaryScreen() {
   const first = loggedDates(realEntries)[0] ?? today;
   const { entries } = useTimeCard(first < today ? first : today, addDays(currentMonday, 6));
   const setMonday = useWeekView((s) => s.setMonday);
+  const payRule = usePayRule();
+  const pay = (monday: string) =>
+    showsPay(payRule) ? formatMoney(weekPay(entries, monday, payRule).total) : null;
 
   const weeks = allWeeks(entries, today);
   const ytd = yearToDate(entries, today);
@@ -143,15 +148,21 @@ export default function SummaryScreen() {
           <AppText variant="title" accessibilityRole="header">
             All weeks
           </AppText>
+          {showsPay(payRule) ? (
+            <AppText variant="caption" tone="muted">
+              Estimated pay is before taxes and isn&apos;t an official pay stub.
+            </AppText>
+          ) : null}
           <View style={styles.list}>
             {[...weeks].reverse().map((w) => {
               const status = weekStatus(w, currentMonday);
+              const estimate = pay(w.monday);
               return (
                 <Pressable
                   key={w.monday}
                   onPress={() => openWeek(w.monday)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Week of ${formatWeekRange(w.monday)}. ${w.daysWorked} days worked, ${formatHours(w.hours)} hours, ${w.daysWorked ? `${formatHours(w.avgPerDay)} average a day` : 'no average'}${w.timeOffHours ? `, ${formatHours(w.timeOffHours)} hours time off` : ''}. ${status.text.replace('✓ ', '')}`}
+                  accessibilityLabel={`Week of ${formatWeekRange(w.monday)}. ${w.daysWorked} days worked, ${formatHours(w.hours)} hours, ${w.daysWorked ? `${formatHours(w.avgPerDay)} average a day` : 'no average'}${w.timeOffHours ? `, ${formatHours(w.timeOffHours)} hours time off` : ''}${estimate ? `. Estimated pay ${estimate}` : ''}. ${status.text.replace('✓ ', '')}`}
                   accessibilityHint="Opens this week"
                   style={({ pressed }) => [
                     styles.week,
@@ -165,6 +176,11 @@ export default function SummaryScreen() {
                       {w.daysWorked ? `${formatHours(w.avgPerDay)} avg/day` : 'no avg'}
                       {w.timeOffHours ? ` · ${formatHours(w.timeOffHours)} h off` : ''}
                     </AppText>
+                    {estimate ? (
+                      <AppText variant="caption" tone="muted">
+                        Estimated pay {estimate}
+                      </AppText>
+                    ) : null}
                     <AppText variant="caption" tone={status.tone}>
                       {status.text}
                     </AppText>

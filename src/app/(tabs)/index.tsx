@@ -7,6 +7,7 @@ import { DayRow } from '@/components/DayRow';
 import { ReminderBanner } from '@/components/ReminderBanner';
 import { Screen } from '@/components/Screen';
 import { WeekFooter } from '@/components/WeekFooter';
+import { usePayRule } from '@/hooks/usePayRule';
 import { WeekNav } from '@/components/WeekNav';
 import { WeekTable } from '@/components/WeekTable';
 import { useHydrated } from '@/hooks/useHydrated';
@@ -16,6 +17,7 @@ import { useToday } from '@/hooks/useToday';
 import { useEntries } from '@/store/entries';
 import { useSettings } from '@/store/settings';
 import { useWeekView } from '@/store/weekView';
+import { showsPay, weekPay } from '@/timecard/pay';
 import { dayWarnings, entryFor, weekStats } from '@/timecard/calc';
 import { addDays, minutesToHours, weekDates } from '@/timecard/dates';
 import { space, WIDE_BREAKPOINT } from '@/theme';
@@ -26,6 +28,7 @@ export default function WeekScreen() {
   const today = useToday();
   const { monday, setMonday } = useWeekView();
   const settings = useSettings();
+  const payRule = usePayRule();
   const now = new Date(useNow(30_000));
   // The viewed week, plus today and yesterday for the clock buttons.
   const yesterday = addDays(today, -1);
@@ -88,7 +91,10 @@ export default function WeekScreen() {
               ))}
             </View>
           )}
-          <WeekFooter stats={weekStats(entries, monday)} />
+          <WeekFooter
+            stats={weekStats(entries, monday)}
+            pay={showsPay(payRule) ? weekPay(entries, monday, payRule) : null}
+          />
         </>
       ) : null}
     </Screen>

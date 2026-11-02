@@ -6,6 +6,7 @@ import { ColumnChart, type ChartBar } from '@/components/ColumnChart';
 import { RangePicker } from '@/components/RangePicker';
 import { Screen } from '@/components/Screen';
 import { useHydrated } from '@/hooks/useHydrated';
+import { usePayRule } from '@/hooks/usePayRule';
 import { useTimeCard } from '@/hooks/useTimeCard';
 import { useToday } from '@/hooks/useToday';
 import { useEntries } from '@/store/entries';
@@ -33,6 +34,7 @@ import {
   mondayOf,
   weekdayIndex,
 } from '@/timecard/dates';
+import { formatMoney, PAY_NOTE, payBreakdown, rangePay, showsPay } from '@/timecard/pay';
 import { radius, space, useTheme, WIDE_BREAKPOINT } from '@/theme';
 
 const md = (key: string) => {
@@ -49,6 +51,7 @@ export default function ChartsScreen() {
   const ready = useHydrated(useEntries);
   const realEntries = useEntries((s) => s.entries);
   const requiredHours = useSettings((s) => s.requiredHours);
+  const payRule = usePayRule();
   const [preset, setPreset] = useState<RangePreset>('week');
   const [custom, setCustom] = useState<DateRange | null>(null);
   const { width } = useWindowDimensions();
@@ -61,6 +64,7 @@ export default function ChartsScreen() {
   // Whole weeks either side, so the week columns are complete.
   const { entries } = useTimeCard(mondayOf(range.from), addDays(mondayOf(range.to), 6));
   const summary = rangeSummary(entries, range);
+  const pay = showsPay(payRule) ? rangePay(entries, range.from, range.to, payRule) : null;
   const target = requiredHours * 5;
   const c = colors.chart;
 
@@ -129,6 +133,7 @@ export default function ChartsScreen() {
     { label: 'Days worked', value: String(summary.daysWorked) },
     { label: 'Avg / day', value: summary.daysWorked ? formatHours(summary.avgPerDay) : '—' },
     { label: 'Time off', value: `${formatHours(summary.timeOffHours)} h` },
+    ...(pay ? [{ label: 'Estimated pay', value: formatMoney(pay.total) }] : []),
   ];
 
   return (
@@ -167,6 +172,11 @@ export default function ChartsScreen() {
                 </View>
               ))}
             </View>
+            {pay ? (
+              <AppText variant="caption" tone="muted">
+                Estimated pay: {payBreakdown(pay)}. {PAY_NOTE}
+              </AppText>
+            ) : null}
             <View style={[styles.charts, wide && styles.chartsWide]}>
               <View style={wide ? styles.dayWide : undefined}>
                 <ColumnChart

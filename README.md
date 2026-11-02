@@ -115,6 +115,23 @@ after explaining why; "Not now" turns the reminder off.
   notification and "run after restart" permissions. Free, no account, no
   network use. On the web it isn't used (`src/notifications/scheduler.web.ts`).
 
+## Estimated pay
+
+Set an hourly rate in Settings → Pay (blank hides pay everywhere). Clocked
+then shows **Estimated pay** in the week footer, on each week in All weeks,
+and in the chart range summary, always noted as before taxes and not an
+official pay stub (`src/timecard/pay.ts`).
+
+- Hours worked (on site + remote) are paid at the rate. Breaks aren't paid;
+  a shift still in progress counts nothing until you clock out.
+- Overtime is weekly (Monday–Sunday): None, over 40 hours at 1.5×, or a
+  custom threshold and multiple. Only hours worked count toward it, and
+  hours past the threshold are overtime in the order they were worked, so
+  a month or custom range gives each day the same pay as its whole week.
+- Time off is paid per type: Not paid, Regular or 1.5×. A type not listed
+  (or none) is paid at the regular rate. Holidays counted automatically are
+  Company Holiday time off.
+
 ## Android test build
 
 `.github/workflows/android-preview.yml` builds an installable test APK on

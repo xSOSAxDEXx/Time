@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 2 Nov 2026 (step 7)._
+_Last updated: 2 Nov 2026 (step 8)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -81,6 +81,10 @@ _Last updated: 2 Nov 2026 (step 7)._
   passes while still clocked in, plus a browser notification if allowed.
 - **Notification icon:** Android needs a plain white silhouette, so it's a
   simple alarm clock rather than the artwork.
+- **Pay:** overtime is the hours past the weekly threshold in the order they
+  were worked, so it lands on the last days of the week. Time off with no
+  type, or a type not in the list, is paid at the regular rate. Amounts are
+  in dollars. A shift still in progress counts no pay yet.
 - "Long shift" warning above 16 hours; "still clocked in" warning for a
   shift with no end from before yesterday.
 
