@@ -37,6 +37,8 @@ Mirror Luna's stack, config and conventions wherever they apply:
   library.
 - **Notifications:** `expo-notifications` for the clock-out reminder (new
   dependency, only on native; see 3.8)
+- **Location:** `expo-location` + `expo-task-manager` for arrive and leave
+  (Android only; see 3.11)
 - **Lint/format/test:** ESLint (Expo config) + Prettier, Jest (`jest-expo`) +
   React Native Testing Library, `npm run check` before every commit
 - **CI:** the same two GitHub Actions workflows as Luna:
@@ -210,6 +212,32 @@ Owner-approved additions (formula review, 2 Nov 2026):
   keeps the holiday time off; the day editor can leave a holiday out for
   one year ("Don't count it this time").
 
+### 3.11 Arrive and leave (owner request, 2 Nov 2026)
+
+Geofencing, **Android only** (browsers can't watch location with the page
+closed; iPhone uses the web app). Off by default.
+
+- Each place in the Locations list can have a **circle** (set to where the
+  phone is now; 100 / 150 / 250 / 500 m).
+- **Ask first, never log on its own.** Questions come as notifications with
+  answer buttons, and as cards on the Week screen.
+- Arrive with nothing started today: **"Clock in?"** (logs the arrival
+  time, and the place as Location if none is set).
+- Leave while clocked in: after 5 minutes away, **"Clock out?"** (logs the
+  time you left), or "On a break".
+- Away **5 minutes or less**: ignored.
+- Back at the **same place** after more than 5 minutes: **"Were you on a
+  break?"** (logs the time away as break, or "I was working").
+- Arrive at a **different place**: **"Log the drive as time worked?"**
+  (marks Travel = Yes and counts it, or logs it as break).
+- If you said yes to "Clock out?" and come back, it offers to undo the
+  clock out.
+- A time that's already set is never overwritten. Location stays on the
+  phone; only the circles are saved (and included in backups). No location
+  history.
+- Needs location access "all the time" and notifications. Uses
+  `expo-location` and `expo-task-manager`.
+
 ## 4. Design
 
 A clean, calm work tool. It should feel quick and trustworthy, like the
@@ -242,6 +270,7 @@ src/timecard/       # calc.ts (formulas), dates.ts (week helpers), pay.ts, csv.t
 src/store/          # entries + settings (Zustand + AsyncStorage)
 src/backup/         # backup format, export, restore
 src/notifications/  # clock-out reminder (native + web)
+src/geofence/       # arrive and leave: prompts, background task (Android)
 src/theme/          # colours, typography, spacing
 src/pwa/            # service worker registration
 assets/brand/       # logo artwork + generated icons
@@ -261,7 +290,8 @@ docs/               # PROGRESS.md, android-testing.md, ...
 6. **Backup/restore and CSV export** (restore also reads the HTML page's
    data and backup files).
 7. **Clock-out reminder.**
-8. **Pay calculator.**
+8. **Pay calculator**, then **arrive and leave** (geofencing, Android;
+   §3.11, owner request).
 9. **Polish, accessibility pass, device testing** (Android APK + iPhone
    web).
 

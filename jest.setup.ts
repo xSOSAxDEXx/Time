@@ -103,6 +103,11 @@ jest.mock('expo-notifications', () => {
     AndroidImportance: { HIGH: 4 },
     SchedulableTriggerInputTypes: { DATE: 'date' },
     setNotificationHandler: () => {},
+    DEFAULT_ACTION_IDENTIFIER: 'expo.modules.notifications.actions.DEFAULT',
+    setNotificationCategoryAsync: async () => null,
+    dismissNotificationAsync: async () => {},
+    getLastNotificationResponseAsync: async () => null,
+    addNotificationResponseReceivedListener: () => ({ remove: () => {} }),
     setNotificationChannelAsync: async () => null,
     getPermissionsAsync: async () => result(state.permission),
     requestPermissionsAsync: async () => {
@@ -120,5 +125,49 @@ jest.mock('expo-notifications', () => {
       scheduled.set(req.identifier, req);
       return req.identifier;
     },
+  };
+});
+
+// expo-location: tests set `__access` ('always' | 'whileUsing' | 'undetermined' |
+// 'denied'), `__position`, and read `__geofences` (null when stopped).
+jest.mock('expo-location', () => {
+  const state = {
+    access: 'undetermined' as string,
+    askAnswer: 'always' as string,
+    position: { latitude: 40, longitude: -75 },
+    geofences: null as unknown[] | null,
+  };
+  const fg = () => ({
+    granted: state.access === 'always' || state.access === 'whileUsing',
+    canAskAgain: state.access !== 'denied',
+  });
+  return {
+    __state: state,
+    Accuracy: { High: 4 },
+    GeofencingEventType: { Enter: 1, Exit: 2 },
+    getForegroundPermissionsAsync: async () => fg(),
+    getBackgroundPermissionsAsync: async () => ({ granted: state.access === 'always' }),
+    requestForegroundPermissionsAsync: async () => {
+      if (state.access === 'undetermined') state.access = state.askAnswer;
+      return fg();
+    },
+    requestBackgroundPermissionsAsync: async () => ({ granted: state.access === 'always' }),
+    getCurrentPositionAsync: async () => ({ coords: { ...state.position } }),
+    hasStartedGeofencingAsync: async () => state.geofences != null,
+    startGeofencingAsync: async (_task: string, regions: unknown[]) => {
+      state.geofences = regions;
+    },
+    stopGeofencingAsync: async () => {
+      state.geofences = null;
+    },
+  };
+});
+
+// expo-task-manager: keeps defined tasks so tests can run them (`__tasks`).
+jest.mock('expo-task-manager', () => {
+  const tasks = new Map<string, unknown>();
+  return {
+    __tasks: tasks,
+    defineTask: (name: string, fn: unknown) => tasks.set(name, fn),
   };
 });

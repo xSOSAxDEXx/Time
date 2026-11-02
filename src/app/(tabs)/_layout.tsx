@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CalendarIcon, ChartIcon, ListIcon, SlidersIcon } from '@/components/icons';
+import { useGeofencing } from '@/geofence/useGeofencing';
 import { useClockOutReminder } from '@/notifications/useReminder';
 import { MIN_TAP, space, useTheme } from '@/theme';
 
@@ -9,6 +10,8 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   // Keeps the clock-out reminder scheduled while the app runs (CLAUDE.md §3.8).
   useClockOutReminder();
+  // Arrive-and-leave questions (Android; CLAUDE.md §3.11).
+  useGeofencing();
   const { colors } = useTheme();
   return (
     <Tabs

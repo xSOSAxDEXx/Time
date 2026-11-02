@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import { openNotificationSettings, requestPermission } from '@/notifications/scheduler';
+import { openAppSettings, requestPermission } from '@/notifications/scheduler';
 import { useReminderState } from '@/notifications/useReminder';
 import { useSettings, type ReminderLead } from '@/store/settings';
 
@@ -64,9 +64,7 @@ export function ReminderSection() {
                 {web ? " in this browser's site settings." : " in your phone's settings."}
                 {web ? ' The reminder still shows as a banner while Clocked is open.' : ''}
               </AppText>
-              {web ? null : (
-                <Button label="Open phone settings" onPress={openNotificationSettings} />
-              )}
+              {web ? null : <Button label="Open phone settings" onPress={openAppSettings} />}
             </>
           ) : permission === 'unsupported' ? (
             <AppText variant="caption" tone="muted">

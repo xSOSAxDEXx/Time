@@ -5,6 +5,7 @@ import { AppText } from '@/components/AppText';
 import { BackupSection } from '@/components/BackupSection';
 import { Button } from '@/components/Button';
 import { ChoiceChips } from '@/components/ChoiceChips';
+import { GeoSection } from '@/components/GeoSection';
 import { ListEditor } from '@/components/ListEditor';
 import { NumberField } from '@/components/NumberField';
 import { ReminderSection } from '@/components/ReminderSection';
@@ -224,6 +225,7 @@ export default function SettingsScreen() {
       </Section>
 
       <ReminderSection />
+      <GeoSection />
       <BackupSection />
 
       {Platform.OS === 'web' ? (

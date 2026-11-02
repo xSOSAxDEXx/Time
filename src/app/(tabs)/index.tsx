@@ -4,6 +4,7 @@ import { Image, Platform, StyleSheet, useWindowDimensions, View } from 'react-na
 import { AppText } from '@/components/AppText';
 import { ClockButtons } from '@/components/ClockButtons';
 import { DayRow } from '@/components/DayRow';
+import { GeoPrompts } from '@/components/GeoPrompts';
 import { ReminderBanner } from '@/components/ReminderBanner';
 import { Screen } from '@/components/Screen';
 import { WeekFooter } from '@/components/WeekFooter';
@@ -62,6 +63,7 @@ export default function WeekScreen() {
       </View>
       {ready ? (
         <>
+          <GeoPrompts />
           <ReminderBanner />
           <WeekNav monday={monday} today={today} onChange={setMonday} />
           {wide ? (

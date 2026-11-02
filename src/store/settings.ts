@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import type { GeoPlace } from '@/geofence/engine';
 import { STANDARD_HOLIDAYS, type HolidayRule } from '@/timecard/holidays';
 
 export type ThemeChoice = 'system' | 'light' | 'dark';
@@ -58,6 +59,10 @@ export type Settings = {
   holidays: HolidayRule[];
   /** Count each company holiday as a full day of Company Holiday time off, unless something else is logged. */
   autoHolidays: boolean;
+  /** Ask to clock in/out, log breaks and drives on arriving and leaving places (Android). */
+  geofencing: boolean;
+  /** Circles on the map for places in the Locations list. */
+  places: GeoPlace[];
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -76,6 +81,8 @@ export const DEFAULT_SETTINGS: Settings = {
   usualBreakMinutes: 0,
   holidays: STANDARD_HOLIDAYS,
   autoHolidays: true,
+  geofencing: false,
+  places: [],
 };
 
 type SettingsState = Settings & {

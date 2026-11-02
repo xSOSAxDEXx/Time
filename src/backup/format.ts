@@ -11,6 +11,7 @@
  * Nothing in a file is trusted: every field is checked, and parts that
  * can't be read are skipped (a day) or left blank (a field).
  */
+import type { GeoPlace } from '@/geofence/engine';
 import { DEFAULT_SETTINGS, type OvertimeRule, type Settings } from '@/store/settings';
 import { isClockTime, isDateKey, toKey } from '@/timecard/dates';
 import type { HolidayRule } from '@/timecard/holidays';
@@ -277,6 +278,27 @@ const SETTING_READERS: { [K in keyof Settings]: (v: unknown) => Settings[K] | nu
           .filter((h): h is HolidayRule => h != null)
       : null,
   autoHolidays: (v) => (typeof v === 'boolean' ? v : null),
+  geofencing: (v) => (typeof v === 'boolean' ? v : null),
+  places: (v) =>
+    Array.isArray(v)
+      ? v
+          .slice(0, MAX_LIST)
+          .filter(
+            (p): p is GeoPlace =>
+              isObject(p) &&
+              isString(p.location) &&
+              !!p.location.trim() &&
+              inRange(p.latitude, -90, 90) &&
+              inRange(p.longitude, -180, 180) &&
+              inRange(p.radiusMeters, 50, 5000),
+          )
+          .map((p) => ({
+            location: p.location.slice(0, MAX_TEXT),
+            latitude: p.latitude,
+            longitude: p.longitude,
+            radiusMeters: p.radiusMeters,
+          }))
+      : null,
 };
 
 function readClockedSettings(raw: unknown): { settings: Partial<Settings>; skipped: number } {

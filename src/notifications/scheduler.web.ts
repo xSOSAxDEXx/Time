@@ -52,4 +52,4 @@ export async function syncReminder(
   timer = setTimeout(() => void show(plan), wait);
 }
 
-export function openNotificationSettings(): void {}
+export function openAppSettings(): void {}

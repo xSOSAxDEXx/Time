@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 2 Nov 2026 (step 8)._
+_Last updated: 2 Nov 2026 (arrive and leave)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -17,6 +17,7 @@ _Last updated: 2 Nov 2026 (step 8)._
 | 6. Backup/restore + CSV                  | ✅ Done. Web checked in Chromium; owner's HTML data imported locally, totals match |
 | 7. Clock-out reminder                    | Not started                                                                        |
 | 8. Pay calculator                        | Not started                                                                        |
+| 8a. Arrive and leave (geofencing)        | ✅ Done. Logic and screens covered by tests; needs a real Android phone to try     |
 | 9. Polish, accessibility, device testing | Not started                                                                        |
 
 ## Owner decisions (don't re-ask)
@@ -36,6 +37,10 @@ _Last updated: 2 Nov 2026 (step 8)._
 - **Times:** give all times to the owner in US Eastern time.
 - **Company holidays** (§3.10): the owner's 2026 list became repeating
   rules and the standard list; counted automatically.
+- **Arrive and leave** (§3.11, added before step 9): ask first; ignore
+  absences of 5 minutes or less; ask about a break on return after longer;
+  a circle per location; ask whether a drive between places counts as time
+  worked.
 - **Pay rates:** overtime None / 1.5× / custom; each time off type Not
   paid / Regular / 1.5× (§3.9). Estimates show from step 8.
 
@@ -85,6 +90,10 @@ _Last updated: 2 Nov 2026 (step 8)._
   were worked, so it lands on the last days of the week. Time off with no
   type, or a type not in the list, is paid at the regular rate. Amounts are
   in dollars. A shift still in progress counts no pay yet.
+- **Arrive and leave:** off by default. Circles default to 150 m. Saying
+  yes to "Clock out?" and then coming back offers to undo the clock out.
+  "Count as worked" for a drive sets Travel = Yes. Questions older than 18
+  hours are dropped. Circles go in backups; the pending questions don't.
 - "Long shift" warning above 16 hours; "still clocked in" warning for a
   shift with no end from before yesterday.
 

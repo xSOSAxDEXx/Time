@@ -44,6 +44,14 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": false,
+          "isIosBackgroundLocationEnabled": false
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/brand/notification-icon.png",

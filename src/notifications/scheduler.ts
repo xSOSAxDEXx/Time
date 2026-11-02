@@ -76,7 +76,7 @@ export async function syncReminder(
   });
 }
 
-/** Opens Clocked's page in the phone's settings, to turn notifications back on. */
-export function openNotificationSettings(): void {
+/** Opens Clocked's page in the phone's settings (notifications, location). */
+export function openAppSettings(): void {
   void Linking.openSettings();
 }

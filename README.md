@@ -132,6 +132,51 @@ official pay stub (`src/timecard/pay.ts`).
   (or none) is paid at the regular rate. Holidays counted automatically are
   Company Holiday time off.
 
+## Arrive and leave (Android)
+
+Settings → Arrive and leave (off by default). Give each place in your
+Locations list a circle ("Set to where I am now", 100–500 m). Android then
+wakes Clocked when you arrive at or leave one, even with the app closed,
+and Clocked **asks**: it never logs anything on its own.
+
+| What happened                           | Question                                                    |
+| --------------------------------------- | ----------------------------------------------------------- |
+| Arrived, nothing started today          | Clock in? (at the arrival time)                             |
+| Left while clocked in, gone over 5 min  | Clock out? (at the time you left) / On a break              |
+| Back at the same place after over 5 min | Were you on a break? (logs the time away)                   |
+| Arrived at a different place            | Log the drive as time worked? (Travel = Yes) / Log as break |
+| Away 5 minutes or less                  | Nothing                                                     |
+
+Questions come as notifications with answer buttons and as cards on the
+Week screen; answering one clears both. The pure rules are in
+`src/geofence/engine.ts`; the background task is `src/geofence/task.ts`.
+
+Limits, honestly:
+
+- Android only. Browsers can't watch your location with the page closed,
+  so the web app (and iPhone) don't have it.
+- Needs location access **"Allow all the time"** and notifications.
+- Android can take a few minutes to notice arriving or leaving, and some
+  phones delay it further to save battery (turn off battery optimization
+  for Clocked if questions don't come). Circles under about 150 m can be
+  missed.
+- Breaks taken without leaving the circle can't be detected.
+- Your location stays on the phone. Only the circles are saved, and they're
+  in backups; no location history is kept.
+- If Clocked is ever published on the Play Store, background location needs
+  Google's extra review. Sharing the APK from GitHub doesn't.
+
+### Dependencies added (arrive and leave)
+
+- `expo-location`: location permission, "where am I now" and the
+  geofences. Its config plugin adds Android's background location
+  permission (no foreground service, nothing for iOS).
+- `expo-task-manager`: runs Clocked's code when Android reports arriving or
+  leaving with the app closed.
+
+Both are free Expo modules (the versions Expo SDK 58 lists), with no
+account and no network use.
+
 ## Android test build
 
 `.github/workflows/android-preview.yml` builds an installable test APK on
@@ -161,6 +206,7 @@ src/timecard/     Entry type, date helpers, spreadsheet formulas, holiday rules,
 src/store/        Persisted entries and settings
 src/backup/       Backup file format, restore, file save/pick (phone and web)
 src/notifications/ Clock-out reminder: when it fires, phone and web schedulers
+src/geofence/     Arrive and leave: prompts, Android geofences, background task
 src/hooks/        Small shared hooks
 src/theme/        Colours, type, spacing
 src/pwa/          Service worker registration (web only)
