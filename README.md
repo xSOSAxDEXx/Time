@@ -38,7 +38,11 @@ Same as Luna Beats:
 - **Theme:** `src/theme/` holds the light and dark palettes (carried over
   from the time card HTML page), type and spacing. Tests check text
   contrast in both.
-- **State:** Zustand, persisted on-device with AsyncStorage (from step 2)
+- **State:** Zustand, persisted on-device with AsyncStorage:
+  `src/store/entries.ts` (every logged day) and `src/store/settings.ts`
+- **Calculations:** `src/timecard/calc.ts` holds the spreadsheet formulas
+  as pure functions (total worked, min clock out, week and year-to-date
+  figures), tested in `src/timecard/__tests__/`
 - **Tests:** Jest (`jest-expo`) and React Native Testing Library
 
 ## Android test build
@@ -66,6 +70,9 @@ On iPhone, open the site in Safari, tap Share → **Add to Home Screen**.
 ```
 src/app/          Screens (Expo Router)
 src/components/   Shared UI
+src/timecard/     Entry type, date helpers, spreadsheet formulas
+src/store/        Persisted entries and settings
+src/hooks/        Small shared hooks
 src/theme/        Colours, type, spacing
 src/pwa/          Service worker registration (web only)
 assets/brand/     Logo SVG and generated icons
