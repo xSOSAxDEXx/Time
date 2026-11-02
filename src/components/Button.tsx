@@ -38,7 +38,7 @@ export function Button({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: !!disabled }}
+      aria-disabled={!!disabled}
       style={({ pressed }) => [
         styles.button,
         look,

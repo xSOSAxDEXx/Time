@@ -8,10 +8,12 @@ export type DateFieldProps = {
   value: string;
   onChange: (value: string) => void;
   label: string;
+  /** Button text on the phone (default "Pick date"). The web shows the date itself. */
+  buttonLabel?: string;
 };
 
 /** Jump to a date: opens the phone's calendar (DateField.web.tsx on the web). */
-export function DateField({ value, onChange, label }: DateFieldProps) {
+export function DateField({ value, onChange, label, buttonLabel }: DateFieldProps) {
   const open = () =>
     DateTimePickerAndroid.open({
       value: fromKey(value),
@@ -20,5 +22,5 @@ export function DateField({ value, onChange, label }: DateFieldProps) {
         if (event.type === 'set' && date) onChange(toKey(date));
       },
     });
-  return <Button label="Pick date" onPress={open} accessibilityLabel={label} />;
+  return <Button label={buttonLabel ?? 'Pick date'} onPress={open} accessibilityLabel={label} />;
 }

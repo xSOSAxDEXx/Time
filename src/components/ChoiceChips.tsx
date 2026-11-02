@@ -10,10 +10,12 @@ type Props = {
   /** Tapping the selected chip again clears it (''). */
   onChange: (value: string) => void;
   label: string;
+  /** Whether tapping the selected chip clears it (default true). */
+  clearable?: boolean;
 };
 
 /** One-of-many choice as tappable chips. A saved value no longer in the list still shows. */
-export function ChoiceChips({ options, value, onChange, label }: Props) {
+export function ChoiceChips({ options, value, onChange, label, clearable = true }: Props) {
   const { colors } = useTheme();
   const all = value && !options.includes(value) ? [...options, value] : options;
   return (
@@ -23,9 +25,9 @@ export function ChoiceChips({ options, value, onChange, label }: Props) {
         return (
           <Pressable
             key={option}
-            onPress={() => onChange(selected ? '' : option)}
+            onPress={() => onChange(selected ? (clearable ? '' : option) : option)}
             accessibilityRole="radio"
-            accessibilityState={{ checked: selected }}
+            aria-checked={selected}
             accessibilityLabel={option}
             style={({ pressed }) => [
               styles.chip,
