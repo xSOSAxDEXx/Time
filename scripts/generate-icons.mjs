@@ -1,86 +1,82 @@
 #!/usr/bin/env node
 /**
- * Renders every app icon, splash and PWA image from the hand-authored mark
- * at assets/brand/logo-mark.svg.
+ * Renders every app icon, splash and PWA image from the logo artwork at
+ * assets/brand/logo-source.jpg (square, at least 1024 px).
  *
  *   npm run icons
  *
  * Outputs are committed so builds never need to run this. Re-run it after
- * changing the mark or the background colours below.
+ * replacing the artwork.
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { Buffer } from 'node:buffer';
+import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import sharp from 'sharp';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const brand = path.join(root, 'assets/brand');
-const publicIcons = path.join(root, 'public/icons');
+const source = path.join(root, 'assets/brand/logo-source.jpg');
 
-// The brand blue background (top to bottom). Keep in sync with app.json.
-const BG_TOP = '#3B82F6';
-const BG_BOTTOM = '#1D4ED8';
+// The brand blue behind the artwork. Keep in sync with app.json.
+const BG = '#1D4ED8';
 
-const markSvg = await readFile(path.join(brand, 'logo-mark.svg'), 'utf8');
-const markInner = markSvg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+// Palette PNGs keep the committed icons small with no visible loss.
+const PNG = { palette: true, quality: 95, compressionLevel: 9, effort: 10 };
 
-/** Wraps the mark, scaled about the centre, optionally on the brand blue. */
-function compose({ scale = 1, background = true }) {
-  const offset = (1024 * (1 - scale)) / 2;
-  const bg = background
-    ? `<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-         <stop offset="0" stop-color="${BG_TOP}"/><stop offset="1" stop-color="${BG_BOTTOM}"/>
-       </linearGradient></defs><rect width="1024" height="1024" fill="url(#bg)"/>`
-    : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-    ${bg}<g transform="translate(${offset} ${offset}) scale(${scale})">${markInner}</g></svg>`;
+/** The artwork, square, at `size` px. */
+const art = (size) => sharp(source).resize(size, size, { fit: 'cover' });
+
+/** The artwork with rounded corners (for places that don't round it for us). */
+async function rounded(size, radiusRatio = 0.22) {
+  const r = Math.round(size * radiusRatio);
+  const mask = Buffer.from(
+    `<svg width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${r}" ry="${r}"/></svg>`,
+  );
+  const img = await art(size).png().toBuffer();
+  return sharp(img)
+    .composite([{ input: mask, blend: 'dest-in' }])
+    .png(PNG);
 }
 
-const bgOnly = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="${BG_TOP}"/><stop offset="1" stop-color="${BG_BOTTOM}"/>
-  </linearGradient></defs><rect width="1024" height="1024" fill="url(#bg)"/></svg>`;
-
-const render = (svg, size) => sharp(Buffer.from(svg), { density: 300 }).resize(size, size).png();
-
-/** A single-colour silhouette of the mark (Android themed icons). */
-async function monochrome(svg, size) {
-  const alpha = await render(svg, size).extractChannel('alpha').toBuffer();
-  return sharp({ create: { width: size, height: size, channels: 3, background: '#FFFFFF' } })
-    .joinChannel(alpha)
-    .png();
+/**
+ * The artwork shrunk to `scale` of the canvas, with its edges mirrored out to
+ * fill the rest. Used where the platform crops to a circle or squircle
+ * (Android adaptive icons, PWA maskable icons) so the knuckles stay in view.
+ */
+async function padded(size, scale) {
+  const inner = Math.round(size * scale);
+  const pad = Math.floor((size - inner) / 2);
+  const buf = await art(inner).png().toBuffer();
+  return sharp(buf)
+    .extend({
+      top: pad,
+      left: pad,
+      bottom: size - inner - pad,
+      right: size - inner - pad,
+      extendWith: 'mirror',
+    })
+    .png(PNG);
 }
-
-const fullIcon = compose({ scale: 0.92 });
-// Android adaptive icons crop to a circle/squircle within the central 66%.
-const adaptiveFg = compose({ scale: 0.62, background: false });
-// PWA maskable icons keep content inside the central 80% circle.
-const maskable = compose({ scale: 0.72 });
-const splashMark = compose({ scale: 1, background: false });
 
 const outputs = [
-  // Native app icon (iOS uses it as-is; it must have no transparency).
-  ['assets/brand/icon.png', () => render(fullIcon, 1024).flatten({ background: BG_BOTTOM })],
-  ['assets/brand/adaptive-foreground.png', () => render(adaptiveFg, 1024)],
-  ['assets/brand/adaptive-background.png', () => render(bgOnly, 1024)],
-  ['assets/brand/adaptive-monochrome.png', () => monochrome(adaptiveFg, 1024)],
-  ['assets/brand/splash-icon.png', () => render(splashMark, 512)],
-  // Used in-app (header, onboarding).
-  ['assets/brand/logo-mark.png', () => render(splashMark, 512)],
+  // Native app icon (iOS rounds it itself; it must have no transparency).
+  ['assets/brand/icon.png', () => art(1024).png(PNG)],
+  // Android shows the central 66% of the adaptive icon.
+  ['assets/brand/adaptive-foreground.png', () => padded(1024, 0.7)],
+  ['assets/brand/splash-icon.png', () => rounded(512)],
+  // Used in-app (Week screen header).
+  ['assets/brand/logo-mark.png', () => rounded(256)],
   // Web
-  ['assets/brand/favicon.png', () => render(fullIcon, 48)],
-  ['public/icons/icon-192.png', () => render(fullIcon, 192)],
-  ['public/icons/icon-512.png', () => render(fullIcon, 512)],
-  ['public/icons/maskable-512.png', () => render(maskable, 512)],
-  [
-    'public/icons/apple-touch-icon.png',
-    () => render(fullIcon, 180).flatten({ background: BG_BOTTOM }),
-  ],
+  ['assets/brand/favicon.png', () => rounded(48)],
+  ['public/icons/icon-192.png', () => rounded(192)],
+  ['public/icons/icon-512.png', () => rounded(512)],
+  // Maskable icons keep content inside the central 80% circle.
+  ['public/icons/maskable-512.png', () => padded(512, 0.86)],
+  ['public/icons/apple-touch-icon.png', () => art(180).flatten({ background: BG }).png(PNG)],
 ];
 
-await mkdir(publicIcons, { recursive: true });
-await writeFile(path.join(brand, 'logo-icon.svg'), fullIcon.trim() + '\n');
+await mkdir(path.join(root, 'public/icons'), { recursive: true });
 for (const [file, make] of outputs) {
   const img = await make();
   await img.toFile(path.join(root, file));

@@ -18,13 +18,13 @@ npm run android    # Expo Go or a development build
 
 ## Scripts
 
-| Command                           | What it does                                                                 |
-| --------------------------------- | ---------------------------------------------------------------------------- |
-| `npm run check`                   | Typecheck, lint, format check and tests (run before every commit)            |
-| `npm test`                        | Jest + React Native Testing Library                                          |
-| `npm run lint` / `npm run format` | ESLint (Expo config) / Prettier                                              |
-| `npm run build:web`               | Export the website/PWA to `dist/`                                            |
-| `npm run icons`                   | Render every app icon, splash and PWA icon from `assets/brand/logo-mark.svg` |
+| Command                           | What it does                                                                   |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| `npm run check`                   | Typecheck, lint, format check and tests (run before every commit)              |
+| `npm test`                        | Jest + React Native Testing Library                                            |
+| `npm run lint` / `npm run format` | ESLint (Expo config) / Prettier                                                |
+| `npm run build:web`               | Export the website/PWA to `dist/`                                              |
+| `npm run icons`                   | Render every app icon, splash and PWA icon from `assets/brand/logo-source.jpg` |
 
 Generated icons are committed, so normal builds never run `npm run icons`.
 
@@ -82,7 +82,7 @@ src/store/        Persisted entries and settings
 src/hooks/        Small shared hooks
 src/theme/        Colours, type, spacing
 src/pwa/          Service worker registration (web only)
-assets/brand/     Logo SVG and generated icons
+assets/brand/     Logo artwork and generated icons
 public/           Web manifest, service worker, index.html, PWA icons
 scripts/          Icon generator, web post-export step
 docs/             Progress notes

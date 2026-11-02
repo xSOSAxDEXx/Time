@@ -229,10 +229,9 @@ HTML page.
 ### Logo & name
 
 - Name: **Clocked**
-- Logo: **a fist crushing a clock**: a fist in a suit sleeve gripping a
-  cracked alarm clock, with shards flying off, on the brand blue. Built as
-  an SVG (`assets/brand/logo-mark.svg`); every icon size comes from it, like
-  Luna (`npm run icons`).
+- Logo: **gold brass knuckles smashing a cracked alarm clock** on a blue
+  starburst (the owner's artwork, `assets/brand/logo-source.jpg`). Every
+  icon size comes from it, like Luna (`npm run icons`).
 
 ## 5. Suggested structure (mirror Luna)
 
@@ -245,7 +244,7 @@ src/backup/         # backup format, export, restore
 src/notifications/  # clock-out reminder (native + web)
 src/theme/          # colours, typography, spacing
 src/pwa/            # service worker registration
-assets/brand/       # logo SVG + generated icons
+assets/brand/       # logo artwork + generated icons
 public/             # manifest, service worker, index.html
 docs/               # PROGRESS.md, android-testing.md, ...
 ```
