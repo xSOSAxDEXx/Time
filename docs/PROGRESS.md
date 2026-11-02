@@ -3,21 +3,21 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 2 Nov 2026 (step 5)._
+_Last updated: 2 Nov 2026 (step 6)._
 
 ## Build order status (CLAUDE.md §6)
 
-| Step                                     | Status                                                                           |
-| ---------------------------------------- | -------------------------------------------------------------------------------- |
-| 1. Scaffold                              | ✅ Done. Web build checked in Chromium (phone + desktop sizes)                   |
-| 2. Data model + calculations + store     | ✅ Done. Checked against the owner's spreadsheet totals (locally, not committed) |
-| 3. Week view + day editor + clock in/out | ✅ Done. Web checked in Chromium (phone list, desktop table, dark mode)          |
-| 4. Summaries, All weeks, Settings        | ✅ Done. Holidays and pay settings added; web checked in Chromium                |
-| 5. Charts                                | ✅ Done. Web checked in Chromium (phone, desktop, dark mode)                     |
-| 6. Backup/restore + CSV                  | Not started                                                                      |
-| 7. Clock-out reminder                    | Not started                                                                      |
-| 8. Pay calculator                        | Not started                                                                      |
-| 9. Polish, accessibility, device testing | Not started                                                                      |
+| Step                                     | Status                                                                             |
+| ---------------------------------------- | ---------------------------------------------------------------------------------- |
+| 1. Scaffold                              | ✅ Done. Web build checked in Chromium (phone + desktop sizes)                     |
+| 2. Data model + calculations + store     | ✅ Done. Checked against the owner's spreadsheet totals (locally, not committed)   |
+| 3. Week view + day editor + clock in/out | ✅ Done. Web checked in Chromium (phone list, desktop table, dark mode)            |
+| 4. Summaries, All weeks, Settings        | ✅ Done. Holidays and pay settings added; web checked in Chromium                  |
+| 5. Charts                                | ✅ Done. Web checked in Chromium (phone, desktop, dark mode)                       |
+| 6. Backup/restore + CSV                  | ✅ Done. Web checked in Chromium; owner's HTML data imported locally, totals match |
+| 7. Clock-out reminder                    | Not started                                                                        |
+| 8. Pay calculator                        | Not started                                                                        |
+| 9. Polish, accessibility, device testing | Not started                                                                        |
 
 ## Owner decisions (don't re-ask)
 
@@ -68,6 +68,11 @@ _Last updated: 2 Nov 2026 (step 5)._
   over 14 days hide weekend days with nothing logged (like the HTML page).
   The week chart always shows whole weeks (Mon–Sun) for every week the
   range touches; the range summary counts only the dates picked.
+- **Restore replaces** what's on the device (after asking), like the HTML
+  page's restore; it doesn't merge. From the HTML page's files only the
+  settings that page had are taken; holidays and pay stay as they are.
+- **CSV** includes company holidays counted automatically, so its totals
+  match the app; min clock out in the CSV leaves out the usual break.
 - "Long shift" warning above 16 hours; "still clocked in" warning for a
   shift with no end from before yesterday.
 

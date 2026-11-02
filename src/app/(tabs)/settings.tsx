@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
+import { BackupSection } from '@/components/BackupSection';
 import { Button } from '@/components/Button';
 import { ChoiceChips } from '@/components/ChoiceChips';
 import { ComingSoon } from '@/components/ComingSoon';
@@ -225,14 +226,12 @@ export default function SettingsScreen() {
       <ComingSoon title="Clock-out reminder" step={7}>
         A notification when you reach your min clock-out time.
       </ComingSoon>
-      <ComingSoon title="Backup, restore and export" step={6}>
-        Save everything to a file, load it on another device, or export a spreadsheet for Excel.
-      </ComingSoon>
+      <BackupSection />
 
       {Platform.OS === 'web' ? (
         <AppText variant="caption" tone="muted">
           On the web, your time card is saved in this browser only. Clearing your browser&apos;s
-          data deletes it, so make backups once that&apos;s available.
+          data deletes it, so back up regularly.
         </AppText>
       ) : (
         <AppText variant="caption" tone="muted">

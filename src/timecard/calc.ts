@@ -1,5 +1,6 @@
 import { addDays, clockToHours, fromKey, isWeekday, mondayOf, weekDates } from './dates';
 import { emptyEntry, isEmptyEntry, type DateKey, type Entries, type Entry } from './types';
+import { holidaysBetween, type HolidayRule } from './holidays';
 
 /**
  * The owner's spreadsheet formulas (CLAUDE.md §3.2). Everything here is
@@ -183,6 +184,27 @@ export function withHolidays(
     if (!out[date]) out[date] = { ...emptyEntry(date), ...holidayFields(name, requiredHours) };
   }
   return out;
+}
+
+/**
+ * The entries the screens work from between `from` and `to`: what's logged,
+ * plus company holidays counted automatically (when `auto` is on). Holidays
+ * before the first logged day are left out, so they never add weeks from
+ * before the person started using the app. `holidays` names every holiday
+ * in the range, counted or not.
+ */
+export function timeCard(
+  entries: Entries,
+  options: { rules: HolidayRule[]; auto: boolean; requiredHours: number },
+  from: DateKey,
+  to: DateKey,
+): { entries: Entries; holidays: Map<DateKey, string> } {
+  const holidays = holidaysBetween(options.rules, from, to);
+  const first = loggedDates(entries)[0];
+  const counted = new Map(
+    options.auto && first ? [...holidays].filter(([date]) => date >= first) : [],
+  );
+  return { entries: withHolidays(entries, counted, options.requiredHours), holidays };
 }
 
 export type WeekStats = {

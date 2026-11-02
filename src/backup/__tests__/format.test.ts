@@ -1,0 +1,170 @@
+import { DEFAULT_SETTINGS } from '@/store/settings';
+import { emptyEntry, type Entry } from '@/timecard/types';
+
+import { backupFileName, buildBackup, parseBackup } from '../format';
+
+// Made-up days only (CLAUDE.md §7: no personal data in tests).
+const day = (date: string, f: Partial<Entry> = {}): Entry => ({ ...emptyEntry(date), ...f });
+
+function parsed(text: string) {
+  const r = parseBackup(text);
+  if (!r.ok) throw new Error(r.message);
+  return r;
+}
+
+describe('Clocked backups', () => {
+  it('round-trips every day and setting', () => {
+    const entries = {
+      '2030-01-08': day('2030-01-08', { start: '08:00', end: '16:30', breakHours: 0.5 }),
+      '2030-01-07': day('2030-01-07', {
+        timeOffHours: 8,
+        timeOffType: 'PTO',
+        travel: 'No',
+        location: 'Main office',
+        comment: 'Made-up day, "quoted", with a comma',
+      }),
+      '2030-01-01': day('2030-01-01', { skipHoliday: true }),
+    };
+    const settings = {
+      ...DEFAULT_SETTINGS,
+      name: 'Sample Person',
+      hourlyRate: 25,
+      usualBreakMinutes: 30,
+    };
+    const backup = buildBackup(settings, entries, new Date(2030, 0, 9, 12));
+    expect(backup.format).toBe('clocked-backup');
+    expect(backup.entries.map((e) => e.date)).toEqual(['2030-01-01', '2030-01-07', '2030-01-08']);
+
+    const r = parsed(JSON.stringify(backup));
+    expect(r.source).toBe('clocked');
+    expect(r.entries).toEqual(entries);
+    expect(r.settings).toEqual(settings);
+    expect([r.skippedDays, r.repairedDays, r.skippedSettings]).toEqual([0, 0, 0]);
+  });
+
+  it('names the file by the local date', () => {
+    expect(backupFileName(new Date(2030, 0, 9, 23, 30))).toBe('clocked-backup-2030-01-09.json');
+  });
+
+  it('skips unreadable days, blanks unreadable fields and drops unreadable settings', () => {
+    const r = parsed(
+      JSON.stringify({
+        format: 'clocked-backup',
+        version: 1,
+        settings: {
+          requiredHours: -3,
+          theme: 'neon',
+          name: 'Sample',
+          locations: ['A', ' A ', '', 7, 'B'],
+          holidays: [
+            { kind: 'fixed', id: 'x', name: 'Made-up Day', month: 2, day: 3, observed: false },
+            { kind: 'fixed', id: 'y', name: 'Bad', month: 13, day: 1 },
+          ],
+          surprise: '<script>',
+        },
+        entries: [
+          day('2030-01-07', { start: '08:00', end: '16:00' }),
+          { ...day('2030-01-08', { start: '25:99', end: '16:00' }), remoteHours: 'lots' },
+          { date: '2030-02-30', start: '08:00' },
+          'not a day',
+        ],
+      }),
+    );
+    expect(Object.keys(r.entries)).toEqual(['2030-01-07', '2030-01-08']);
+    expect(r.entries['2030-01-08']).toMatchObject({ start: '', end: '16:00', remoteHours: 0 });
+    expect(r.skippedDays).toBe(2);
+    expect(r.repairedDays).toBe(1);
+    expect(r.skippedSettings).toBe(2);
+    expect(r.settings).toEqual({
+      name: 'Sample',
+      locations: ['A', 'B'],
+      holidays: [
+        { kind: 'fixed', id: 'x', name: 'Made-up Day', month: 2, day: 3, observed: false },
+      ],
+    });
+  });
+
+  it('refuses files from a newer version, and files that are not backups', () => {
+    const newer = parseBackup(
+      JSON.stringify({ format: 'clocked-backup', version: 2, entries: [] }),
+    );
+    expect(newer).toMatchObject({ ok: false, message: expect.stringMatching(/newer version/) });
+    for (const text of ['', 'not json', '[]', '{"hello":1}', 'null']) {
+      expect(parseBackup(text)).toMatchObject({
+        ok: false,
+        message: expect.stringMatching(/doesn't look like/),
+      });
+    }
+  });
+});
+
+describe('the time card HTML page files', () => {
+  const html = {
+    settings: {
+      name: 'Sample Person',
+      badge: '000',
+      primaryLoc: 'Main office',
+      reqHours: 8,
+      locations: ['Main office', 'Remote'],
+      offTypes: ['PTO', 'Unpaid'],
+      theme: '',
+    },
+    entries: {
+      '2030-01-07': {
+        date: '2030-01-07',
+        start: '07:30',
+        end: '16:00',
+        brk: 0.5,
+        remote: '1.5',
+        off: 0,
+        offType: '',
+        travel: 'Yes',
+        loc: 'Main office',
+        comment: 'Made-up comment',
+      },
+      // Older rows may lack a date field, use "8:05" times or be all blank.
+      '2030-01-08': { start: '8:05', end: '', brk: '', remote: '', off: '8', offType: 'PTO' },
+      '2030-01-09': {
+        date: '2030-01-09',
+        start: '',
+        end: '',
+        brk: 0,
+        remote: 0,
+        off: 0,
+        comment: '',
+      },
+    },
+  };
+
+  it("reads the page's Backup file", () => {
+    const r = parsed(JSON.stringify(html));
+    expect(r.source).toBe('html-backup');
+    expect(r.entries).toEqual({
+      '2030-01-07': day('2030-01-07', {
+        start: '07:30',
+        end: '16:00',
+        breakHours: 0.5,
+        remoteHours: 1.5,
+        travel: 'Yes',
+        location: 'Main office',
+        comment: 'Made-up comment',
+      }),
+      '2030-01-08': day('2030-01-08', { start: '08:05', timeOffHours: 8, timeOffType: 'PTO' }),
+    });
+    expect(r.settings).toEqual({
+      name: 'Sample Person',
+      badge: '000',
+      primaryLocation: 'Main office',
+      requiredHours: 8,
+      locations: ['Main office', 'Remote'],
+      timeOffTypes: ['PTO', 'Unpaid'],
+      theme: 'system',
+    });
+  });
+
+  it("reads the page's data file (timecard-data.json)", () => {
+    const r = parsed(JSON.stringify({ app: 'time-card', version: 1, savedAt: 'x', ...html }));
+    expect(r.source).toBe('html-data');
+    expect(Object.keys(r.entries)).toHaveLength(2);
+  });
+});

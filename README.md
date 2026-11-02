@@ -52,6 +52,38 @@ Same as Luna Beats:
   browser's built-in time and date inputs are used instead
   (`TimeField.web.tsx`, `DateField.web.tsx`).
 
+### Dependencies added (step 6)
+
+- `expo-file-system`: writes the backup and CSV files and opens the file
+  picker for restore (it has one built in, so no separate document-picker
+  package is needed).
+- `expo-sharing`: opens the phone's share sheet to save or send those
+  files.
+
+Both are free Expo modules with no accounts or network use (the same ones
+Luna Beats uses). On the web neither is used: files download, and restore
+uses the browser's file picker (`src/backup/fileIO.web.ts`).
+
+## Backup, restore and export
+
+Settings → Backup and export.
+
+- **Back up** saves one JSON file (`clocked-backup-YYYY-MM-DD.json`) with
+  every logged day and every setting, including company holidays and pay.
+  On the phone it opens the share sheet; on the web it downloads.
+- **Restore** opens a file, says what's in it, and asks before replacing
+  the days on the device. It reads Clocked backups and the time card HTML
+  page's data file (`timecard-data.json`) and Backup file. From the HTML
+  page's files it takes the days, name, badge, primary location, required
+  hours, lists and theme; holidays and pay settings stay as they are.
+  Nothing in a file is trusted: days that can't be read are skipped and
+  unreadable fields are left blank (`src/backup/format.ts`).
+- **Export spreadsheet (CSV)** has the same columns as the HTML page's
+  export, one row per day for every logged week, and opens in Excel.
+  Company holidays counted automatically are included. Text that starts
+  with `=`, `+`, `-` or `@` gets a leading apostrophe so spreadsheet
+  programs don't run it as a formula.
+
 ## Android test build
 
 `.github/workflows/android-preview.yml` builds an installable test APK on
@@ -77,8 +109,9 @@ On iPhone, open the site in Safari, tap Share → **Add to Home Screen**.
 ```
 src/app/          Screens (Expo Router)
 src/components/   Shared UI
-src/timecard/     Entry type, date helpers, spreadsheet formulas, holiday rules
+src/timecard/     Entry type, date helpers, spreadsheet formulas, holiday rules, charts, CSV
 src/store/        Persisted entries and settings
+src/backup/       Backup file format, restore, file save/pick (phone and web)
 src/hooks/        Small shared hooks
 src/theme/        Colours, type, spacing
 src/pwa/          Service worker registration (web only)
