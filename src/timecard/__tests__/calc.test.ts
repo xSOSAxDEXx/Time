@@ -1,6 +1,7 @@
 import {
   allWeeks,
   dayParts,
+  isOvernight,
   metMinClockOut,
   minClockOut,
   totalWorked,
@@ -52,8 +53,19 @@ describe('total worked = (End − Start) + Remote + Time off − Break', () => {
     expect(totalWorked(day('2030-01-07', { timeOffHours: 8, timeOffType: 'PTO' }))).toBe(8);
   });
 
-  it('a start with no end counts no shift time', () => {
-    expect(totalWorked(day('2030-01-07', { start: '08:00', breakHours: 0.25 }))).toBe(-0.25);
+  it('while the shift is still going, only remote and time off count (no negative break)', () => {
+    expect(totalWorked(day('2030-01-07', { start: '08:00', breakHours: 0.25 }))).toBe(0);
+    expect(totalWorked(day('2030-01-07', { start: '08:00', remoteHours: 1 }))).toBe(1);
+  });
+
+  it('an end before the start is an overnight shift', () => {
+    const e = day('2030-01-07', { start: '22:00', end: '06:30', breakHours: 0.5 });
+    expect(isOvernight(e)).toBe(true);
+    expect(totalWorked(e)).toBe(8);
+  });
+
+  it('the same start and end is no time, not 24 hours', () => {
+    expect(totalWorked(day('2030-01-07', { start: '08:00', end: '08:00' }))).toBe(0);
   });
 
   it('an empty day is zero', () => {
@@ -84,6 +96,13 @@ describe('min clock out = Start + Required − Time off − Remote + Break', () 
     expect(metMinClockOut(day('2030-01-07', { ...base, end: '16:30' }), 8)).toBe(true);
     expect(metMinClockOut(day('2030-01-07', { ...base, end: '16:29' }), 8)).toBe(false);
     expect(metMinClockOut(day('2030-01-07', base), 8)).toBeNull();
+  });
+
+  it('runs into the next day for an overnight shift', () => {
+    const night = { start: '22:00', breakHours: 0.5 };
+    expect(minClockOut(day('2030-01-07', night), 8)).toBe(30.5); // 6:30 AM next day
+    expect(metMinClockOut(day('2030-01-07', { ...night, end: '06:30' }), 8)).toBe(true);
+    expect(metMinClockOut(day('2030-01-07', { ...night, end: '06:00' }), 8)).toBe(false);
   });
 });
 

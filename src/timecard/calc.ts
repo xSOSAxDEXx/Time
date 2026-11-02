@@ -12,21 +12,51 @@ export const WORKED_DAY_MIN_HOURS = 0.01;
 /** More than this many days worked makes a full week. */
 export const FULL_WEEK_MIN_DAYS = 5;
 
+/** Hours after midnight of the day's own date that the shift ends. */
+function endHours(e: Entry): number | null {
+  const start = clockToHours(e.start);
+  const end = clockToHours(e.end);
+  if (end == null) return null;
+  // An end time earlier than the start is the next morning: an overnight shift.
+  return start != null && end < start ? end + 24 : end;
+}
+
+/** True when the shift runs past midnight into the next day. */
+export function isOvernight(e: Entry): boolean {
+  const start = clockToHours(e.start);
+  const end = clockToHours(e.end);
+  return start != null && end != null && end < start;
+}
+
+/** True when clocked in but not out yet: the shift is still going. */
+export function isInProgress(e: Entry): boolean {
+  return !!e.start && !e.end;
+}
+
 /** End − Start in hours, or 0 when either is missing. */
 function shiftSpan(e: Entry): number {
   const start = clockToHours(e.start);
-  const end = clockToHours(e.end);
+  const end = endHours(e);
   return start != null && end != null ? end - start : 0;
 }
 
-/** Total worked = (End − Start) + Remote + Time off − Break. */
+/**
+ * Total worked = (End − Start) + Remote + Time off − Break.
+ *
+ * Two changes from the spreadsheet, approved by the owner:
+ * - An end before the start is an overnight shift (the day it started).
+ * - While a shift is still going (no end yet), the break isn't subtracted,
+ *   so the day never shows a negative total.
+ */
 export function totalWorked(e: Entry): number {
-  return shiftSpan(e) + e.remoteHours + e.timeOffHours - e.breakHours;
+  const breakHours = isInProgress(e) ? 0 : e.breakHours;
+  return shiftSpan(e) + e.remoteHours + e.timeOffHours - breakHours;
 }
 
 /**
  * Min clock out = Start + Required hours − Time off − Remote + Break, in
- * hours since midnight. Null when there's no start time.
+ * hours since midnight of the day's date (above 24 means the next day).
+ * Null when there's no start time.
  */
 export function minClockOut(e: Entry, requiredHours: number): number | null {
   const start = clockToHours(e.start);
@@ -37,7 +67,7 @@ export function minClockOut(e: Entry, requiredHours: number): number | null {
 /** Whether the day's end time reaches its min clock out (null until both exist). */
 export function metMinClockOut(e: Entry, requiredHours: number): boolean | null {
   const min = minClockOut(e, requiredHours);
-  const end = clockToHours(e.end);
+  const end = endHours(e);
   if (min == null || end == null) return null;
   return end >= min - 1e-9;
 }

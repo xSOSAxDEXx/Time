@@ -77,6 +77,11 @@ These came from the owner's Excel formulas. Keep them in pure functions
 
 - **Total worked** = (End − Start) + Remote + Time off − Break.
   With no start/end, total = Remote + Time off.
+- **Overnight shifts** (owner-approved change): an end time earlier than
+  the start is the next morning. The shift counts on the day it started,
+  and min clock out can fall on the next day.
+- **Shift in progress** (start, no end yet): the break isn't subtracted
+  until the shift ends, so a day never shows a negative total.
 - **Min clock out** = Start + Required hours − Time off − Remote + Break.
   Shown only when Start is set. Green once End ≥ Min clock out.
 - **Days worked (week)** = Monday–Friday days with total > 0.01.
