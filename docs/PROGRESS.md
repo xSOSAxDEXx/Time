@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 2 Nov 2026 (arrive and leave)._
+_Last updated: 2 Nov 2026 (step 9 under way)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -15,10 +15,10 @@ _Last updated: 2 Nov 2026 (arrive and leave)._
 | 4. Summaries, All weeks, Settings        | ✅ Done. Holidays and pay settings added; web checked in Chromium                  |
 | 5. Charts                                | ✅ Done. Web checked in Chromium (phone, desktop, dark mode)                       |
 | 6. Backup/restore + CSV                  | ✅ Done. Web checked in Chromium; owner's HTML data imported locally, totals match |
-| 7. Clock-out reminder                    | Not started                                                                        |
-| 8. Pay calculator                        | Not started                                                                        |
-| 8a. Arrive and leave (geofencing)        | ✅ Done. Logic and screens covered by tests; needs a real Android phone to try     |
-| 9. Polish, accessibility, device testing | Not started                                                                        |
+| 7. Clock-out reminder                    | ✅ Done. Web checked in Chromium; Android reminder needs a phone                   |
+| 8. Pay calculator                        | ✅ Done. Web checked in Chromium                                                   |
+| 8a. Arrive and leave (geofencing)        | ✅ Done. Test build 2 has it; owner trying it on a phone                           |
+| 9. Polish, accessibility, device testing | In progress. Web accessibility audit done; phone testing with the owner            |
 
 ## Owner decisions (don't re-ask)
 
@@ -102,6 +102,22 @@ _Last updated: 2 Nov 2026 (arrive and leave)._
 The owner approved suggestions 1–4 and 6 and declined 5 (weekend days
 counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
 
+## Step 9 so far
+
+- `docs/android-testing.md`: the phone checklist (Android test build and
+  iPhone web app), including a walk-through for arrive and leave.
+- Automated browser audit (phone and computer widths, light and dark): every
+  control has a name, text contrast meets WCAG AA, no sideways scrolling.
+- Fixed: switches can be toggled by tapping anywhere on their row (the
+  switch alone was 40×20 px); ‹ › buttons are now at least 48 px wide;
+  keyboard focus shows a blue ring on the web (it was invisible); the
+  computer table's min clock out reads its day and "met" / "short" to
+  screen readers.
+- Chart columns on a phone are as wide as the screen allows (40 px for a
+  week), and the computer table keeps 40 px fields like the HTML page.
+
 ## Waiting on the owner
 
-- Nothing right now.
+- Results from trying test build 2 on an Android phone (arrive and leave
+  especially) and the web app on an iPhone. See `docs/android-testing.md`.
+- Confirm the app ID `com.clocked.app` before any Play Store release.

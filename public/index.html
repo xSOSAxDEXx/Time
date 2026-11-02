@@ -2,7 +2,7 @@
 <html lang="%LANG_ISO_CODE%">
   <head>
     <meta charset="utf-8" />
-    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
@@ -38,6 +38,16 @@
         display: flex;
         height: 100%;
         flex: 1;
+      }
+      /* A visible ring for keyboard focus (react-native-web removes the browser's). */
+      :focus-visible {
+        outline: 2px solid #2563eb !important;
+        outline-offset: 2px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :focus-visible {
+          outline-color: #5b8cff !important;
+        }
       }
     </style>
   </head>

@@ -1,4 +1,4 @@
-import { StyleSheet, Switch, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { MIN_TAP, space, useTheme } from '@/theme';
 
@@ -14,7 +14,13 @@ type Props = {
 export function SwitchRow({ label, description, value, onChange }: Props) {
   const { colors } = useTheme();
   return (
-    <View style={styles.row}>
+    // The whole row toggles (a bigger target than the switch); screen readers
+    // still land on the switch itself.
+    <Pressable
+      style={styles.row}
+      onPress={() => onChange(!value)}
+      accessible={false}
+      focusable={false}>
       <View style={styles.text}>
         <AppText variant="bodyStrong">{label}</AppText>
         {description ? (
@@ -30,7 +36,7 @@ export function SwitchRow({ label, description, value, onChange }: Props) {
         accessibilityHint={description}
         trackColor={{ true: colors.accent, false: colors.border }}
       />
-    </View>
+    </Pressable>
   );
 }
 

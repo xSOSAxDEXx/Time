@@ -175,6 +175,13 @@ export function WeekTable({
             <View style={{ width: COLUMNS[3][1] }}>
               <AppText
                 variant="number"
+                accessibilityLabel={
+                  min != null
+                    ? `${label('min clock out')}: ${formatClock(min)}${
+                        met === true ? ', met' : met === false ? ', short' : ''
+                      }`
+                    : `${label('min clock out')}: none`
+                }
                 tone={met === true ? 'good' : met === false ? 'warn' : 'primary'}>
                 {min != null ? `${met === true ? '✓ ' : ''}${formatClock(min)}` : '—'}
               </AppText>

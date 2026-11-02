@@ -183,7 +183,8 @@ account and no network use.
 GitHub Actions (Actions tab → **Android preview build** → Run workflow) and
 publishes it as a pre-release. Open the release on your phone, tap the
 `.apk` under Assets, and install it (allow installs from your browser if
-asked).
+asked). [docs/android-testing.md](docs/android-testing.md) lists what to
+try on the phone, and on an iPhone with the web app.
 
 ## Web app on GitHub Pages
 
