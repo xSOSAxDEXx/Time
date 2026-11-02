@@ -45,6 +45,13 @@ Same as Luna Beats:
   figures), tested in `src/timecard/__tests__/`
 - **Tests:** Jest (`jest-expo`) and React Native Testing Library
 
+### Dependencies added (step 3)
+
+- `@react-native-community/datetimepicker`: the phone's own time and date
+  pickers on Android (the version Expo SDK 58 lists). On the web the
+  browser's built-in time and date inputs are used instead
+  (`TimeField.web.tsx`, `DateField.web.tsx`).
+
 ## Android test build
 
 `.github/workflows/android-preview.yml` builds an installable test APK on

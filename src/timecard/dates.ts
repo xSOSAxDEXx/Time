@@ -91,3 +91,28 @@ export function formatHours(hours: number): string {
 
 export const minutesToHours = (minutes: number) => minutes / 60;
 export const hoursToMinutes = (hours: number) => Math.round(hours * 60);
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "Jan 7". */
+export function formatShortDate(key: DateKey): string {
+  const d = fromKey(key);
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
+/** "Monday, Jan 7, 2030". */
+export function formatLongDate(key: DateKey): string {
+  const d = fromKey(key);
+  return `${DAY_NAMES[weekdayIndex(key)]}, ${formatShortDate(key)}, ${d.getFullYear()}`;
+}
+
+/** "Jan 7 – 13, 2030", "Jan 28 – Feb 3, 2030" or "Dec 29, 2029 – Jan 4, 2030". */
+export function formatWeekRange(monday: DateKey): string {
+  const sunday = addDays(monday, 6);
+  const [a, b] = [fromKey(monday), fromKey(sunday)];
+  if (a.getFullYear() !== b.getFullYear()) {
+    return `${formatShortDate(monday)}, ${a.getFullYear()} – ${formatShortDate(sunday)}, ${b.getFullYear()}`;
+  }
+  const end = a.getMonth() === b.getMonth() ? String(b.getDate()) : formatShortDate(sunday);
+  return `${formatShortDate(monday)} – ${end}, ${b.getFullYear()}`;
+}

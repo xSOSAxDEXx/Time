@@ -39,6 +39,7 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.background },
         }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="day/[date]" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
   );

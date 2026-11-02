@@ -11,7 +11,7 @@ _Last updated: 2 Nov 2026._
 | ---------------------------------------- | -------------------------------------------------------------------------------- |
 | 1. Scaffold                              | ✅ Done. Web build checked in Chromium (phone + desktop sizes)                   |
 | 2. Data model + calculations + store     | ✅ Done. Checked against the owner's spreadsheet totals (locally, not committed) |
-| 3. Week view + day editor + clock in/out | Not started                                                                      |
+| 3. Week view + day editor + clock in/out | ✅ Done. Web checked in Chromium (phone list, desktop table, dark mode)          |
 | 4. Summaries, All weeks, Settings        | Not started                                                                      |
 | 5. Charts                                | Not started                                                                      |
 | 6. Backup/restore + CSV                  | Not started                                                                      |
@@ -48,10 +48,33 @@ _Last updated: 2 Nov 2026._
   year its Monday is in (the spreadsheet kept one sheet per year).
 - A day with a start but no end yet counts no shift time (only remote, time
   off and minus the break), same as the spreadsheet.
-- An end time before the start time isn't treated as an overnight shift;
-  it gives a negative total, as the spreadsheet did.
+- **Overnight shifts** (owner asked for this): an end before the start is
+  the next morning; the shift counts on the day it started. Just after
+  midnight, "Clock out" closes last night's open shift.
+- **Shift in progress:** the break isn't subtracted until there's an end
+  time, so a day never shows a negative total (formula review).
 - Default locations are generic (Main office, Remote, Client site, Vendor,
   Other); time off types are PTO, Floating, Company Holiday, Unpaid.
+
+## Formula review: suggestions waiting for the owner
+
+Not built; each would need the owner's OK (CLAUDE.md §7):
+
+1. **Usual break**: a setting (e.g. 20 min) added to min clock out until
+   the real break is logged, so min clock out isn't too early in the
+   morning.
+2. **Hours so far** while clocked in, and the time left to min clock out.
+3. **Check odd days**: flag a time off type with no hours (or hours with no
+   type), and very long shifts (likely a missed clock out).
+4. **Averages include paid time off.** Avg hours/week counts PTO hours, so
+   it's "hours paid" more than "hours worked". Option: also show a
+   worked-only average.
+5. **Weekends:** weekend hours count toward the week, but weekend days
+   don't count as days worked, which pushes avg hours/day up. Option to
+   count weekend days worked.
+6. **Short weeks:** a week with an unlogged holiday has 4 days, isn't
+   "full", and drops out of the year-to-date average. Logging holidays as
+   Company Holiday time off avoids it; the app could remind about it.
 
 ## Waiting on the owner
 

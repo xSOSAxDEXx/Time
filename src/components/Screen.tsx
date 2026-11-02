@@ -11,10 +11,12 @@ type Props = {
   edges?: Edge[];
   /** Let the content use the full window width (the wide week table). */
   wide?: boolean;
+  /** Pinned below the content, within thumb reach (the clock buttons). */
+  footer?: ReactNode;
 };
 
 /** App background, safe areas, and a comfortable max width on big screens. */
-export function Screen({ children, scroll = true, edges = ['top'], wide = false }: Props) {
+export function Screen({ children, scroll = true, edges = ['top'], wide = false, footer }: Props) {
   const { colors } = useTheme();
   // On the web this is the page's main landmark.
   const body = (
@@ -25,6 +27,7 @@ export function Screen({ children, scroll = true, edges = ['top'], wide = false 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={edges}>
       {scroll ? <ScrollView contentContainerStyle={styles.scroll}>{body}</ScrollView> : body}
+      {footer ? <View style={[styles.footer, wide && styles.wide]}>{footer}</View> : null}
     </SafeAreaView>
   );
 }
@@ -43,4 +46,11 @@ const styles = StyleSheet.create({
     gap: space.md,
   },
   wide: { maxWidth: 1920 },
+  footer: {
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
+    alignSelf: 'center',
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+  },
 });
