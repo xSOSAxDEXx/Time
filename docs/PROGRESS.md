@@ -53,7 +53,8 @@ _Last updated: 2 Nov 2026 (step 9 under way)._
 - Overtime default: over 40 hours a week at 1.5×; only worked hours count
   toward overtime; Unpaid time off pays nothing.
 - Clock-out reminder on by default, at the min clock-out time.
-- Week view switches to the full table at 1024 px wide and up.
+- Week view switches to the full table at 1180 px wide and up (narrower, it
+  would need sideways scrolling).
 - **Year to date** covers the calendar year of today; a week belongs to the
   year its Monday is in (the spreadsheet kept one sheet per year).
 - A day with a start but no end yet counts no shift time (only remote, time
@@ -116,6 +117,27 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
 
+## UI clean-up (2 Nov 2026)
+
+Same treatment as the owner's Rep & Ration site:
+
+- Week: ‹ › arrows either side of the dates; "Back to this week" only when
+  away from it. A shift in progress shows its hours so far on the right
+  (and in the computer table) with time left and min clock out on one line,
+  not a 0.00 total beside a separate "so far" line.
+- Day editor: "Hours so far" card while clocked in; break, remote and time
+  off share one row.
+- Settings: "Jump to" links at the top, a blue accent beside each section
+  title, and the reminder and arrive-and-leave sections moved up next to
+  Work day.
+- Empty states: a card with an icon and a "Go to Week" button on Summary,
+  and a note on Charts when a range has nothing logged.
+- Web: date, time and list fields use the app's font (they were serif);
+  hover outlines on day and week rows and buttons; a compact reminder
+  banner. The computer table's columns share the width so nothing is cut
+  off, and it now starts at 1180 px (narrower windows get the list).
+- Sentence case for the computer table headers.
+
 ## First phone test (2 Nov 2026, test build 2)
 
 The owner tried a break with arrive and leave. Break times were right.
@@ -132,6 +154,9 @@ Found and fixed:
   usual break ("Log + usual break"), shown when a usual break is set and no
   break is logged yet. "Log break" still replaces the usual break.
 - Not tried yet: driving to another place, and a trip of 5 minutes or less.
+- Test build 3: the owner went through `docs/android-testing.md` sections 2,
+  3 and 5 (everyday use, reminder, backup) with no problems reported. The
+  arrive-and-leave walk-through (section 4) is next, over a normal day.
 
 ## Waiting on the owner
 

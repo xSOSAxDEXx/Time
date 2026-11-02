@@ -8,7 +8,6 @@ import { ChoiceChips } from '@/components/ChoiceChips';
 import { NumberField } from '@/components/NumberField';
 import { Screen } from '@/components/Screen';
 import { TimeField } from '@/components/TimeField';
-import { progressText } from '@/components/DayRow';
 import { useNow } from '@/hooks/useNow';
 import { useSoftConfirm } from '@/hooks/useSoftConfirm';
 import { useTimeCard } from '@/hooks/useTimeCard';
@@ -19,6 +18,8 @@ import {
   dayWarnings,
   entryFor,
   HOLIDAY_TIME_OFF_TYPE,
+  hoursLeft,
+  hoursSoFar,
   isInProgress,
   isOvernight,
   metMinClockOut,
@@ -29,6 +30,7 @@ import {
 import {
   addDays,
   formatClock,
+  formatDuration,
   formatHours,
   formatLongDate,
   hoursToMinutes,
@@ -38,9 +40,18 @@ import {
 import { isEmptyEntry, type Travel } from '@/timecard/types';
 import { radius, space, type, useTheme } from '@/theme';
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  grow,
+}: {
+  label: string;
+  children: React.ReactNode;
+  /** Share a row with other fields. */
+  grow?: boolean;
+}) {
   return (
-    <View style={styles.field}>
+    <View style={[styles.field, grow && styles.grow]}>
       <AppText variant="label" tone="muted">
         {label}
       </AppText>
@@ -83,7 +94,9 @@ export default function DayScreen() {
   const update = (patch: Parameters<typeof updateDay>[1]) => updateDay(date, patch, entry);
   const holiday = holidays.get(date);
   const warnings = dayWarnings(entry, today);
-  const progress = progressText(entry, now, requiredHours, usualBreakHours);
+  // Clocked in: hours so far and time left take the total's place.
+  const soFar = hoursSoFar(entry, now);
+  const left = hoursLeft(entry, now, requiredHours, usualBreakHours);
   const usingUsualBreak = plannedBreak(entry, usualBreakHours) !== entry.breakHours;
   const saveComment = () => {
     if (draft != null && draft !== entry.comment) update({ comment: draft });
@@ -157,26 +170,45 @@ export default function DayScreen() {
         style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
         accessible
         accessibilityLiveRegion="polite"
-        accessibilityLabel={`Total worked ${isEmptyEntry(entry) ? 'none' : `${formatHours(total)} hours`}. ${
+        accessibilityLabel={`${
+          soFar != null
+            ? `Shift in progress, ${formatHours(soFar)} hours so far${left != null ? (left > 0 ? `, ${formatDuration(left)} left` : ', hours met') : ''}`
+            : `Total worked ${isEmptyEntry(entry) ? 'none' : `${formatHours(total)} hours`}`
+        }. ${
           min != null
             ? `Min clock out ${formatClock(min)}${met === true ? ', met' : met === false ? ', not met yet' : ''}.`
             : ''
         }`}>
         <View style={styles.stat}>
-          <AppText variant="caption" tone="muted">
-            Total worked
-          </AppText>
-          <AppText variant="display">{isEmptyEntry(entry) ? '—' : formatHours(total)}</AppText>
-          {isInProgress(entry) ? (
-            <AppText variant="caption" tone="muted">
-              Shift in progress
-            </AppText>
-          ) : null}
-          {progress ? (
-            <AppText variant="caption" tone="accent">
-              {progress}
-            </AppText>
-          ) : null}
+          {soFar != null ? (
+            <>
+              <AppText variant="caption" tone="muted">
+                Hours so far
+              </AppText>
+              <AppText variant="display" tone="accent">
+                {formatHours(soFar)}
+              </AppText>
+              <AppText variant="caption" tone={left != null && left <= 0 ? 'good' : 'muted'}>
+                {left == null
+                  ? 'Shift in progress'
+                  : left > 0
+                    ? `${formatDuration(left)} left`
+                    : '✓ Hours met'}
+              </AppText>
+            </>
+          ) : (
+            <>
+              <AppText variant="caption" tone="muted">
+                Total worked
+              </AppText>
+              <AppText variant="display">{isEmptyEntry(entry) ? '—' : formatHours(total)}</AppText>
+              {isInProgress(entry) ? (
+                <AppText variant="caption" tone="muted">
+                  Shift in progress
+                </AppText>
+              ) : null}
+            </>
+          )}
         </View>
         <View style={styles.stat}>
           <AppText variant="caption" tone="muted">
@@ -233,7 +265,7 @@ export default function DayScreen() {
       ) : null}
 
       <View style={styles.pair}>
-        <Field label="Break (minutes)">
+        <Field grow label="Break (min)">
           <NumberField
             label="Break"
             unit="minutes"
@@ -241,7 +273,7 @@ export default function DayScreen() {
             onChange={(m) => update({ breakHours: minutesToHours(m) })}
           />
         </Field>
-        <Field label="Remote / outside (hours)">
+        <Field grow label="Remote (h)">
           <NumberField
             label="Remote or outside work"
             unit="hours"
@@ -250,7 +282,7 @@ export default function DayScreen() {
             onChange={(remoteHours) => update({ remoteHours })}
           />
         </Field>
-        <Field label="Time off (hours)">
+        <Field grow label="Time off (h)">
           <NumberField
             label="Time off"
             unit="hours"
@@ -337,6 +369,7 @@ const styles = StyleSheet.create({
   stat: { flex: 1, gap: 2 },
   pair: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   field: { gap: space.xs },
+  grow: { flex: 1, minWidth: 96 },
   notice: { gap: space.sm, padding: space.md, borderRadius: radius.lg, borderWidth: 1 },
   comment: {
     minHeight: 96,

@@ -3,7 +3,8 @@ import { StyleSheet, TextInput, View } from 'react-native';
 
 import { useEntries, type EntryPatch } from '@/store/entries';
 import { isEmptyEntry, type Entry } from '@/timecard/types';
-import { dayWarnings, metMinClockOut, minClockOut, totalWorked } from '@/timecard/calc';
+import { dayWarnings, hoursSoFar, metMinClockOut, minClockOut, totalWorked } from '@/timecard/calc';
+import { useNow } from '@/hooks/useNow';
 import {
   DAY_NAMES,
   formatClock,
@@ -30,19 +31,27 @@ type Props = {
   timeOffTypes: string[];
 };
 
-const COLUMNS = [
-  ['Day', 110],
-  ['Start Shift', 130],
-  ['End Shift', 130],
-  ['Min Clock Out', 92],
-  ['Break (min)', 68],
-  ['Remote / Outside (h)', 76],
-  ['Time Off (h)', 68],
-  ['Total Worked', 70],
-  ['Time Off Type', 130],
-  ['Travel', 76],
-  ['Location', 130],
-] as const;
+/** [header, width] for fixed columns, or [header, min width, share of the rest]. */
+const COLUMNS: readonly (readonly [string, number, number?])[] = [
+  ['Day', 92],
+  ['Start shift', 124],
+  ['End shift', 124],
+  ['Min clock out', 80],
+  ['Break (min)', 58],
+  ['Remote / outside (h)', 64],
+  ['Time off (h)', 58],
+  ['Total worked', 62],
+  ['Time off type', 100, 1],
+  ['Travel', 70],
+  ['Location', 100, 1],
+  ['Comment', 104, 1.4],
+];
+
+/** A column's width: fixed, or a share of what's left (no sideways scrolling). */
+const col = (i: number) => {
+  const [, width, grow] = COLUMNS[i];
+  return grow ? { flex: grow, minWidth: width } : { width };
+};
 
 /** Comment cell: saves on blur; hovering shows the whole comment (CLAUDE.md §3.3). */
 function CommentCell({ entry, label }: { entry: Entry; label: string }) {
@@ -57,7 +66,7 @@ function CommentCell({ entry, label }: { entry: Entry; label: string }) {
   };
   return (
     <View
-      style={[styles.commentCell, hover && styles.raised]}
+      style={[col(COLUMNS.length - 1), hover && styles.raised]}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}>
       <TextInput
@@ -98,6 +107,7 @@ export function WeekTable({
   timeOffTypes,
 }: Props) {
   const { colors } = useTheme();
+  const now = new Date(useNow(30_000));
   // Passing the shown day keeps an automatic holiday's time off on the first edit.
   const update = (e: Entry, patch: EntryPatch) => useEntries.getState().updateDay(e.date, patch, e);
   return (
@@ -105,18 +115,13 @@ export function WeekTable({
       role="table"
       style={[styles.table, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View role="row" style={[styles.row, styles.head, { borderColor: colors.border }]}>
-        {COLUMNS.map(([name, width]) => (
-          <View key={name} role="columnheader" style={{ width }}>
+        {COLUMNS.map(([name], i) => (
+          <View key={name} role="columnheader" style={col(i)}>
             <AppText variant="caption" tone="muted" style={styles.headText}>
               {name}
             </AppText>
           </View>
         ))}
-        <View role="columnheader" style={styles.flex}>
-          <AppText variant="caption" tone="muted" style={styles.headText}>
-            Comment
-          </AppText>
-        </View>
       </View>
       {days.map((e, i) => {
         const name = DAY_NAMES[weekdayIndex(e.date)];
@@ -125,6 +130,8 @@ export function WeekTable({
         const warnings = dayWarnings(e, today);
         const holiday = holidays.get(e.date);
         const met = metMinClockOut(e, requiredHours);
+        // Clocked in: hours so far in place of the total (like the phone list).
+        const soFar = hoursSoFar(e, now);
         const label = (field: string) => `${name} ${field}`;
         return (
           <View
@@ -136,7 +143,7 @@ export function WeekTable({
               isToday && { backgroundColor: colors.today },
               !isToday && i >= 5 && { backgroundColor: colors.weekend },
             ]}>
-            <View style={{ width: COLUMNS[0][1] }}>
+            <View style={col(0)}>
               <AppText variant="bodyStrong">{name}</AppText>
               <AppText variant="caption" tone={isToday ? 'accent' : 'muted'}>
                 {formatShortDate(e.date)}
@@ -156,7 +163,7 @@ export function WeekTable({
                 </AppText>
               ) : null}
             </View>
-            <View style={{ width: COLUMNS[1][1] }}>
+            <View style={col(1)}>
               <TimeField
                 compact
                 label={label('start shift')}
@@ -164,7 +171,7 @@ export function WeekTable({
                 onChange={(start) => update(e, { start })}
               />
             </View>
-            <View style={{ width: COLUMNS[2][1] }}>
+            <View style={col(2)}>
               <TimeField
                 compact
                 label={label('end shift')}
@@ -172,7 +179,7 @@ export function WeekTable({
                 onChange={(end) => update(e, { end })}
               />
             </View>
-            <View style={{ width: COLUMNS[3][1] }}>
+            <View style={col(3)}>
               <AppText
                 variant="number"
                 accessibilityLabel={
@@ -186,7 +193,7 @@ export function WeekTable({
                 {min != null ? `${met === true ? '✓ ' : ''}${formatClock(min)}` : '—'}
               </AppText>
             </View>
-            <View style={{ width: COLUMNS[4][1] }}>
+            <View style={col(4)}>
               <NumberField
                 compact
                 unit="minutes"
@@ -195,7 +202,7 @@ export function WeekTable({
                 onChange={(m) => update(e, { breakHours: minutesToHours(m) })}
               />
             </View>
-            <View style={{ width: COLUMNS[5][1] }}>
+            <View style={col(5)}>
               <NumberField
                 compact
                 unit="hours"
@@ -205,7 +212,7 @@ export function WeekTable({
                 onChange={(remoteHours) => update(e, { remoteHours })}
               />
             </View>
-            <View style={{ width: COLUMNS[6][1] }}>
+            <View style={col(6)}>
               <NumberField
                 compact
                 unit="hours"
@@ -215,15 +222,29 @@ export function WeekTable({
                 onChange={(timeOffHours) => update(e, { timeOffHours })}
               />
             </View>
-            <View style={{ width: COLUMNS[7][1] }}>
-              <AppText
-                variant="number"
-                tone={isEmptyEntry(e) ? 'muted' : 'primary'}
-                style={styles.right}>
-                {isEmptyEntry(e) ? '—' : formatHours(totalWorked(e))}
-              </AppText>
+            <View style={col(7)}>
+              {soFar != null ? (
+                <AppText
+                  variant="number"
+                  tone="accent"
+                  style={styles.right}
+                  accessibilityLabel={`${label('hours so far')}: ${formatHours(soFar)}`}>
+                  {formatHours(soFar)}
+                  <AppText variant="caption" tone="muted">
+                    {' '}
+                    so far
+                  </AppText>
+                </AppText>
+              ) : (
+                <AppText
+                  variant="number"
+                  tone={isEmptyEntry(e) ? 'muted' : 'primary'}
+                  style={styles.right}>
+                  {isEmptyEntry(e) ? '—' : formatHours(totalWorked(e))}
+                </AppText>
+              )}
             </View>
-            <View style={{ width: COLUMNS[8][1] }}>
+            <View style={col(8)}>
               <SelectField
                 label={label('time off type')}
                 options={timeOffTypes}
@@ -231,7 +252,7 @@ export function WeekTable({
                 onChange={(timeOffType) => update(e, { timeOffType })}
               />
             </View>
-            <View style={{ width: COLUMNS[9][1] }}>
+            <View style={col(9)}>
               <SelectField
                 label={label('travel')}
                 options={['Yes', 'No']}
@@ -239,7 +260,7 @@ export function WeekTable({
                 onChange={(travel) => update(e, { travel: travel as Entry['travel'] })}
               />
             </View>
-            <View style={{ width: COLUMNS[10][1] }}>
+            <View style={col(10)}>
               <SelectField
                 label={label('location')}
                 options={locations}
@@ -267,9 +288,7 @@ const styles = StyleSheet.create({
   },
   head: { alignItems: 'flex-end' },
   headText: { fontWeight: '600' },
-  flex: { flex: 1, minWidth: 160 },
   right: { textAlign: 'right' },
-  commentCell: { flex: 1, minWidth: 160 },
   raised: { zIndex: 10 },
   comment: { minHeight: 40, borderWidth: 1, borderRadius: radius.sm, padding: 6 },
   tip: {

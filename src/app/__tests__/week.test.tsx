@@ -36,7 +36,7 @@ async function open() {
 describe('week screen', () => {
   it('shows Monday to Sunday of this week with today marked', async () => {
     await open();
-    expect(screen.getByRole('header', { name: 'This week · Jan 7 – 13, 2030' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'This week, Jan 7 – 13, 2030' })).toBeOnTheScreen();
     for (const day of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']) {
       expect(screen.getByText(day)).toBeOnTheScreen();
     }
@@ -64,7 +64,7 @@ describe('week screen', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Clock out now' }));
     expect(useEntries.getState().entries['2030-01-09'].end).toBe('16:05');
     expect(screen.getByText('7:30 AM – 4:05 PM')).toBeOnTheScreen();
-    expect(screen.getByText('✓ Met · min out 4:00 PM')).toBeOnTheScreen();
+    expect(screen.getByText('✓ Met · min out 4:00\u00a0PM')).toBeOnTheScreen();
     expect(screen.getAllByText('8.08').length).toBeGreaterThan(0);
   });
 
@@ -83,12 +83,12 @@ describe('week screen', () => {
     await open();
     await fireEvent.press(screen.getByRole('button', { name: 'Previous week' }));
     expect(
-      screen.getByRole('header', { name: 'Week of · Dec 31, 2029 – Jan 6, 2030' }),
+      screen.getByRole('header', { name: 'Week of Dec 31, 2029 – Jan 6, 2030' }),
     ).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole('button', { name: 'This week' }));
-    expect(screen.getByRole('header', { name: 'This week · Jan 7 – 13, 2030' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Back to this week' }));
+    expect(screen.getByRole('header', { name: 'This week, Jan 7 – 13, 2030' })).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Next week' }));
-    expect(screen.getByRole('header', { name: 'Week of · Jan 14 – 20, 2030' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Week of Jan 14 – 20, 2030' })).toBeOnTheScreen();
   });
 
   it('jumps to the week of a picked date', async () => {
@@ -100,7 +100,7 @@ describe('week screen', () => {
         .__pick(new Date(2030, 2, 14)),
     );
     expect(
-      await screen.findByRole('header', { name: 'Week of · Mar 11 – 17, 2030' }),
+      await screen.findByRole('header', { name: 'Week of Mar 11 – 17, 2030' }),
     ).toBeOnTheScreen();
   });
 
@@ -135,8 +135,15 @@ describe('week screen extras', () => {
     useEntries.getState().updateDay('2030-01-09', { start: '08:02' });
     await act(async () => jest.setSystemTime(new Date(2030, 0, 9, 12, 2)));
     await open();
-    expect(screen.getByText('4.00 h so far · 4:30 left')).toBeOnTheScreen();
-    expect(screen.getByText('Min out 4:32 PM')).toBeOnTheScreen();
+    // Hours so far take the total's place; time left goes with min clock out.
+    expect(screen.getByText('4.00')).toBeOnTheScreen();
+    expect(screen.getByText('so far')).toBeOnTheScreen();
+    expect(screen.getByText('4:30 left · min out 4:32\u00a0PM')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(
+        /^Wednesday, Jan 9, today\. In since 8:02 AM\. 4\.00 hours so far\. 4:30 left/,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('flags odd days', async () => {

@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { progressText } from '@/components/DayRow';
+import { EmptyState } from '@/components/EmptyState';
+import { ListIcon } from '@/components/icons';
 import { Screen } from '@/components/Screen';
 import { StatCard } from '@/components/StatCard';
 import { useHydrated } from '@/hooks/useHydrated';
@@ -84,9 +86,12 @@ export default function SummaryScreen() {
         Summary
       </AppText>
       {!ready ? null : weeks.length === 0 ? (
-        <AppText tone="muted">
-          Nothing logged yet. Clock in on the Week tab and your averages will show here.
-        </AppText>
+        <EmptyState
+          icon={<ListIcon color={colors.accent} size={32} />}
+          title="Nothing logged yet"
+          body="Clock in on the Week tab and your averages and weeks will show here."
+          action={{ label: 'Go to Week', onPress: () => router.navigate('/') }}
+        />
       ) : (
         <>
           <View style={styles.grid}>
@@ -111,7 +116,7 @@ export default function SummaryScreen() {
               note={
                 thisWeek.hours >= target
                   ? `✓ ${formatHours(thisWeek.hours - target)} over ${target} h`
-                  : `${formatHours(target - thisWeek.hours)} h to ${target} h`
+                  : `${formatHours(target - thisWeek.hours)} h left of ${target} h`
               }
               noteTone={thisWeek.hours >= target ? 'good' : 'muted'}
             />
@@ -164,9 +169,12 @@ export default function SummaryScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Week of ${formatWeekRange(w.monday)}. ${w.daysWorked} days worked, ${formatHours(w.hours)} hours, ${w.daysWorked ? `${formatHours(w.avgPerDay)} average a day` : 'no average'}${w.timeOffHours ? `, ${formatHours(w.timeOffHours)} hours time off` : ''}${estimate ? `. Estimated pay ${estimate}` : ''}. ${status.text.replace('✓ ', '')}`}
                   accessibilityHint="Opens this week"
-                  style={({ pressed }) => [
+                  style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
                     styles.week,
-                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: hovered ? colors.accent : colors.border,
+                    },
                     pressed && styles.pressed,
                   ]}>
                   <View style={styles.weekMain}>

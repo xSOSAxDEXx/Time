@@ -39,6 +39,15 @@
         height: 100%;
         flex: 1;
       }
+      /* Date, time and list fields use the app's font, not the browser's serif default. */
+      html,
+      body,
+      input,
+      select,
+      textarea {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+      }
       /* A visible ring for keyboard focus (react-native-web removes the browser's). */
       :focus-visible {
         outline: 2px solid #2563eb !important;

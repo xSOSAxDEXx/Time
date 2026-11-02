@@ -39,10 +39,13 @@ export function Button({
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={accessibilityHint}
       aria-disabled={!!disabled}
-      style={({ pressed }) => [
+      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
         styles.button,
         look,
         grow && styles.grow,
+        hovered &&
+          !disabled &&
+          (variant === 'primary' ? styles.hoverPrimary : { backgroundColor: colors.surfaceSoft }),
         disabled && styles.disabled,
         pressed && styles.pressed,
       ]}>
@@ -69,4 +72,5 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
   disabled: { opacity: 0.4 },
   pressed: { opacity: 0.7 },
+  hoverPrimary: { opacity: 0.9 },
 });

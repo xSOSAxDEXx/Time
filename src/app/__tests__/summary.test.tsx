@@ -73,7 +73,7 @@ describe('summary', () => {
       screen.getByLabelText('Avg hours worked / week: 33.00: Without paid time off'),
     ).toBeOnTheScreen();
     // Today's shift is still going, so only Monday counts so far.
-    expect(screen.getByLabelText('This week: 8.00: 32.00 h to 40 h')).toBeOnTheScreen();
+    expect(screen.getByLabelText('This week: 8.00: 32.00 h left of 40 h')).toBeOnTheScreen();
     expect(
       screen.getByLabelText("Today's min clock out: 4:00 PM: 4.00 h so far · 4:00 left"),
     ).toBeOnTheScreen();
@@ -95,7 +95,7 @@ describe('summary', () => {
     await open();
     await fireEvent.press(screen.getByLabelText(/^Week of Jan 7/));
     expect(
-      await screen.findByRole('header', { name: 'Week of · Jan 7 – 13, 2030' }),
+      await screen.findByRole('header', { name: 'Week of Jan 7 – 13, 2030' }),
     ).toBeOnTheScreen();
   });
 

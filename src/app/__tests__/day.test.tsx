@@ -35,7 +35,7 @@ describe('day editor', () => {
   it('works out the total and min clock out as times are entered', async () => {
     await openDay();
     await pickTime(/^Start shift/, at(7, 30));
-    expect(screen.getByText('Shift in progress')).toBeOnTheScreen();
+    expect(screen.getByText('Hours so far')).toBeOnTheScreen();
     expect(screen.getByText('3:30 PM')).toBeOnTheScreen(); // 7:30 + 8h
 
     await fireEvent.changeText(screen.getByLabelText('Break, in minutes'), '30');

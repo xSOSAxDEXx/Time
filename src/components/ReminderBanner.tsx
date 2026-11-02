@@ -33,12 +33,18 @@ export function ReminderBanner() {
 
   if (web && now >= plan.fireAt.getTime() && dismissedKey !== plan.key) {
     return (
-      <View style={card} accessibilityLiveRegion="polite" accessibilityRole="alert">
-        <AppText variant="bodyStrong" tone="good">
-          ✓ {plan.title}
-        </AppText>
-        <AppText>{plan.body}</AppText>
+      <View
+        style={[card, styles.inline]}
+        accessibilityLiveRegion="polite"
+        accessibilityRole="alert">
+        <View style={styles.text}>
+          <AppText variant="bodyStrong" tone="good">
+            ✓ {plan.title}
+          </AppText>
+          <AppText>{plan.body}</AppText>
+        </View>
         <Button
+          variant="quiet"
           label="Dismiss"
           accessibilityLabel="Dismiss the reminder"
           onPress={() => dismiss(plan.key)}
@@ -79,4 +85,6 @@ export function ReminderBanner() {
 const styles = StyleSheet.create({
   card: { gap: space.sm, padding: space.md, borderRadius: radius.lg, borderWidth: 1 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
+  inline: { flexDirection: 'row', alignItems: 'center' },
+  text: { flex: 1, gap: 2 },
 });

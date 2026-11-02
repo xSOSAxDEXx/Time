@@ -172,6 +172,11 @@ export default function ChartsScreen() {
                 </View>
               ))}
             </View>
+            {summary.hours === 0 ? (
+              <AppText tone="muted">
+                Nothing logged in this range. Pick another range above, or log time on the Week tab.
+              </AppText>
+            ) : null}
             {pay ? (
               <AppText variant="caption" tone="muted">
                 Estimated pay: {payBreakdown(pay)}. {PAY_NOTE}

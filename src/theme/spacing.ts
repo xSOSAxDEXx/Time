@@ -20,4 +20,4 @@ export const MIN_TAP = 48;
 export const MAX_CONTENT_WIDTH = 760;
 
 /** At or above this window width the week shows as a full table (CLAUDE.md §3.3). */
-export const WIDE_BREAKPOINT = 1024;
+export const WIDE_BREAKPOINT = 1180;

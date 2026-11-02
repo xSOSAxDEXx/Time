@@ -85,13 +85,23 @@ export function DayRow({
   const min = minClockOut(entry, requiredHours, usualBreakHours);
   const met = metMinClockOut(entry, requiredHours);
   const summary = daySummary(entry);
-  const progress = progressText(entry, now, requiredHours, usualBreakHours);
+  // Clocked in: the hours so far take the total's place on the right.
+  const soFar = hoursSoFar(entry, now);
+  const left = hoursLeft(entry, now, requiredHours, usualBreakHours);
+  const working = soFar != null && left != null;
 
   let minText = '';
-  let minTone: 'good' | 'warn' | 'muted' = 'muted';
+  let minTone: 'good' | 'warn' | 'muted' | 'accent' = 'muted';
   if (min != null) {
-    if (met === true) [minText, minTone] = [`✓ Met · min out ${formatClock(min)}`, 'good'];
-    else if (met === false) [minText, minTone] = [`Short · min out ${formatClock(min)}`, 'warn'];
+    // A no-break space keeps "4:02 PM" together when the line wraps.
+    const out = `min out ${formatClock(min).replace(' ', '\u00a0')}`;
+    if (working)
+      [minText, minTone] =
+        left > 0
+          ? [`${formatDuration(left)} left · ${out}`, 'accent']
+          : [`✓ Hours met · ${out}`, 'good'];
+    else if (met === true) [minText, minTone] = [`✓ Met · ${out}`, 'good'];
+    else if (met === false) [minText, minTone] = [`Short · ${out}`, 'warn'];
     else minText = `Min out ${formatClock(min)}`;
   }
 
@@ -100,8 +110,8 @@ export function DayRow({
     `${name}, ${formatShortDate(date)}${isToday ? ', today' : ''}`,
     holiday ? `${holiday}${entry.holiday ? ', counted as a company holiday' : ''}` : '',
     summary,
-    progress,
-    empty ? '' : `${formatHours(total)} hours`,
+    working ? `${formatHours(soFar)} hours so far` : '',
+    empty || working ? '' : `${formatHours(total)} hours`,
     minText.replace('✓ ', ''),
     entry.comment ? `Comment: ${entry.comment}` : '',
     ...warnings.map((w) => `Check: ${w}`),
@@ -115,11 +125,11 @@ export function DayRow({
       accessibilityRole="button"
       accessibilityLabel={a11y}
       accessibilityHint="Opens the day to edit it"
-      style={({ pressed }) => [
+      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
         styles.row,
         {
           backgroundColor: isToday ? colors.today : weekend ? colors.weekend : colors.surface,
-          borderColor: isToday ? colors.accent : colors.border,
+          borderColor: isToday || hovered ? colors.accent : colors.border,
         },
         pressed && styles.pressed,
       ]}>
@@ -143,11 +153,6 @@ export function DayRow({
         <AppText variant="body" tone={empty ? 'muted' : 'primary'}>
           {summary}
         </AppText>
-        {progress ? (
-          <AppText variant="caption" tone="accent">
-            {progress}
-          </AppText>
-        ) : null}
         {minText ? (
           <AppText variant="caption" tone={minTone}>
             {minText}
@@ -164,9 +169,20 @@ export function DayRow({
           </AppText>
         ))}
       </View>
-      <AppText variant="number" tone={empty ? 'muted' : 'primary'} style={styles.total}>
-        {empty ? '—' : formatHours(total)}
-      </AppText>
+      {working ? (
+        <View style={styles.totalBox}>
+          <AppText variant="number" tone="accent" style={styles.total}>
+            {formatHours(soFar)}
+          </AppText>
+          <AppText variant="caption" tone="muted" style={styles.total}>
+            so far
+          </AppText>
+        </View>
+      ) : (
+        <AppText variant="number" tone={empty ? 'muted' : 'primary'} style={styles.total}>
+          {empty ? '—' : formatHours(total)}
+        </AppText>
+      )}
     </Pressable>
   );
 }
@@ -185,5 +201,6 @@ const styles = StyleSheet.create({
   day: { width: 56 },
   middle: { flex: 1, gap: 2 },
   total: { minWidth: 52, textAlign: 'right' },
+  totalBox: { alignItems: 'flex-end' },
   pressed: { opacity: 0.7 },
 });

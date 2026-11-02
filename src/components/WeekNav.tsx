@@ -13,31 +13,49 @@ type Props = {
   onChange: (monday: string) => void;
 };
 
-/** Previous / This week / Next / pick a date (CLAUDE.md §3.3). */
+/** Previous / Next around the dates, then pick a date or go back to this week (CLAUDE.md §3.3). */
 export function WeekNav({ monday, today, onChange }: Props) {
   const isThisWeek = monday === mondayOf(today);
+  const range = formatWeekRange(monday);
   return (
     <View style={styles.wrap}>
-      <AppText variant="title" accessibilityRole="header" accessibilityLiveRegion="polite">
-        {isThisWeek ? 'This week' : 'Week of'} · {formatWeekRange(monday)}
-      </AppText>
-      <View style={styles.row}>
+      <View style={styles.top}>
         <Button
-          label="‹ Prev"
+          label="‹"
           accessibilityLabel="Previous week"
           onPress={() => onChange(addDays(monday, -7))}
         />
-        <Button label="This week" disabled={isThisWeek} onPress={() => onChange(mondayOf(today))} />
+        <View style={styles.title}>
+          <AppText variant="caption" tone={isThisWeek ? 'accent' : 'muted'}>
+            {isThisWeek ? 'This week' : 'Week of'}
+          </AppText>
+          <AppText
+            variant="title"
+            accessibilityRole="header"
+            accessibilityLiveRegion="polite"
+            accessibilityLabel={isThisWeek ? `This week, ${range}` : `Week of ${range}`}>
+            {range}
+          </AppText>
+        </View>
         <Button
-          label="Next ›"
+          label="›"
           accessibilityLabel="Next week"
           onPress={() => onChange(addDays(monday, 7))}
         />
+      </View>
+      <View style={styles.row}>
         <DateField
           value={monday}
           label="Go to the week of a date"
           onChange={(date) => onChange(mondayOf(date))}
         />
+        {isThisWeek ? null : (
+          <Button
+            label="Back to this week"
+            variant="quiet"
+            onPress={() => onChange(mondayOf(today))}
+          />
+        )}
       </View>
     </View>
   );
@@ -45,5 +63,8 @@ export function WeekNav({ monday, today, onChange }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { gap: space.sm },
+  // Arrows stay close to the dates on wide screens.
+  top: { flexDirection: 'row', alignItems: 'center', gap: space.sm, maxWidth: 520 },
+  title: { flex: 1, alignItems: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, alignItems: 'center' },
 });
