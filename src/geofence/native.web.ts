@@ -27,7 +27,8 @@ export async function syncGeofences(): Promise<string | null> {
 }
 export async function stopGeofences(): Promise<void> {}
 export async function setUpGeoNotifications(): Promise<void> {}
-export async function notifyPrompt(_p: GeoPrompt): Promise<void> {}
+export async function notifyPrompt(_p: GeoPrompt, _at?: number | null): Promise<void> {}
+export async function cancelPromptNotification(_id: string): Promise<void> {}
 export async function scheduleClockOutNotification(_pe: PendingExit): Promise<void> {}
 export async function cancelClockOutNotification(): Promise<void> {}
 export async function dismissPromptNotification(_p: GeoPrompt): Promise<void> {}

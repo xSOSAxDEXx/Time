@@ -93,8 +93,49 @@ describe('the background task', () => {
     await run(ENTER);
     const [prompt] = useGeo.getState().prompts;
     expect(prompt.kind).toBe('break');
+    // Sent once they've been back 3 minutes.
+    expect(notifications.__scheduled.get(prompt.id)!.trigger!.date).toBe(
+      new Date(2030, 0, 9, 12, 44).getTime(),
+    );
     await answerGeoPrompt(prompt.id, 'break');
     expect(useEntries.getState().entries['2030-01-09'].breakHours).toBeCloseTo(39 / 60);
+  });
+
+  it('a blip back inside takes back the break question and keeps the trip going', async () => {
+    useEntries.setState({
+      entries: { '2030-01-09': { ...emptyEntry('2030-01-09'), start: '07:52' } },
+    });
+    await run(ENTER);
+    jest.setSystemTime(new Date(2030, 0, 9, 12, 0));
+    await run(EXIT);
+    jest.setSystemTime(new Date(2030, 0, 9, 12, 6));
+    await answerGeoPrompt(`clockOut-${new Date(2030, 0, 9, 12, 0).getTime()}`, 'break');
+    jest.setSystemTime(new Date(2030, 0, 9, 12, 10));
+    await run(ENTER);
+    const [blip] = useGeo.getState().prompts;
+    jest.setSystemTime(new Date(2030, 0, 9, 12, 11));
+    await run(EXIT);
+    expect(notifications.__scheduled.has(blip.id)).toBe(false);
+    expect(notifications.__scheduled.has('geo-clock-out')).toBe(false);
+    expect(useGeo.getState().pendingExit).toMatchObject({ answered: true });
+  });
+
+  it('offers the usual break on top, and logs both', async () => {
+    useSettings.getState().update({ usualBreakMinutes: 30 });
+    useEntries.setState({
+      entries: { '2030-01-09': { ...emptyEntry('2030-01-09'), start: '07:52' } },
+    });
+    await run(ENTER);
+    jest.setSystemTime(new Date(2030, 0, 9, 12, 0));
+    await run(EXIT);
+    jest.setSystemTime(new Date(2030, 0, 9, 12, 15));
+    await run(ENTER);
+    const [prompt] = useGeo.getState().prompts;
+    expect(notifications.__scheduled.get(prompt.id)!.content.categoryIdentifier).toBe(
+      'geo-break-usual',
+    );
+    await answerGeoPrompt(prompt.id, 'extra');
+    expect(useEntries.getState().entries['2030-01-09'].breakHours).toBeCloseTo(0.75);
   });
 
   it('does nothing while arrive-and-leave is off', async () => {

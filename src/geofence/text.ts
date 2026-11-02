@@ -44,20 +44,30 @@ export function promptText(p: GeoPrompt): PromptText {
     case 'break': {
       const span = `${time(p.from)} – ${time(p.to)}`;
       const len = length(p.from, p.to);
+      const usualMin = Math.round((p.usualHours ?? 0) * 60);
+      // A usual break is set and none is logged yet: this can be on top of it.
+      const extra = usualMin
+        ? [{ answer: 'extra' as const, label: `Log ${len} + usual ${usualMin} min` }]
+        : [];
+      const extraNote = usualMin
+        ? ` Log just this, or this on top of your usual ${usualMin} min break.`
+        : '';
       return p.clockedOut
         ? {
             title: `Back at ${p.place}`,
-            body: `You clocked out at ${time(p.from)}. Were you on a break (${span}, ${len})? That undoes the clock out.`,
+            body: `You clocked out at ${time(p.from)}. Were you on a break (${span}, ${len})? That undoes the clock out.${extraNote}`,
             actions: [
               { answer: 'break', label: `Log ${len} break` },
+              ...extra,
               { answer: 'dismiss', label: 'Stay clocked out' },
             ],
           }
         : {
             title: `Back at ${p.place}`,
-            body: `You were away ${span} (${len}). Were you on a break?`,
+            body: `You were away ${span} (${len}). Were you on a break?${extraNote}`,
             actions: [
               { answer: 'break', label: `Log ${len} break` },
+              ...extra,
               { answer: 'worked', label: 'I was working' },
             ],
           };

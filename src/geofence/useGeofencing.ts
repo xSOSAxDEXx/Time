@@ -18,7 +18,7 @@ import {
   syncGeofences,
 } from './native';
 
-const ANSWERS: GeoAnswer[] = ['yes', 'break', 'worked', 'dismiss'];
+const ANSWERS: GeoAnswer[] = ['yes', 'break', 'extra', 'worked', 'dismiss'];
 
 function onResponse(r: Notifications.NotificationResponse | null) {
   const id = r?.notification.request.content.data?.promptId;
@@ -62,11 +62,12 @@ export function useGeofencing(): void {
     run.then(setRegisteredKey, () => setRegisteredKey(null));
   }, [regionKey, settingsReady, geoReady]);
 
-  // Clocked out by hand after leaving: the "Clock out?" notification isn't needed.
+  // Clocked out by hand after leaving, or already answered: the "Clock out?"
+  // notification isn't needed.
   const shiftOpen =
     !!pendingExit && !!entries[pendingExit.date] && isInProgress(entries[pendingExit.date]);
+  const settled = !!pendingExit && (!shiftOpen || !!pendingExit.answered);
   useEffect(() => {
-    if (geofencingSupported() && pendingExit && !shiftOpen)
-      void cancelClockOutNotification().catch(() => {});
-  }, [pendingExit, shiftOpen]);
+    if (geofencingSupported() && settled) void cancelClockOutNotification().catch(() => {});
+  }, [settled]);
 }

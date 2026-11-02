@@ -84,8 +84,9 @@ export async function stopGeofences(): Promise<void> {
 
 /** The notification buttons for each kind of question (same answers as the in-app cards). */
 function category(p: GeoPrompt): string {
-  if (p.kind === 'break' || p.kind === 'travel')
-    return `geo-${p.kind}${p.clockedOut ? '-out' : ''}`;
+  if (p.kind === 'break')
+    return `geo-break${p.clockedOut ? '-out' : ''}${p.usualHours ? '-usual' : ''}`;
+  if (p.kind === 'travel') return `geo-travel${p.clockedOut ? '-out' : ''}`;
   return `geo-${p.kind}`;
 }
 
@@ -94,6 +95,17 @@ const SAMPLES: GeoPrompt[] = [
   { id: '', kind: 'clockOut', date: '', place: '', at: 0 },
   { id: '', kind: 'break', date: '', place: '', from: 0, to: 0, clockedOut: false },
   { id: '', kind: 'break', date: '', place: '', from: 0, to: 0, clockedOut: true },
+  {
+    id: '',
+    kind: 'break',
+    date: '',
+    place: '',
+    from: 0,
+    to: 0,
+    clockedOut: false,
+    usualHours: 0.5,
+  },
+  { id: '', kind: 'break', date: '', place: '', from: 0, to: 0, clockedOut: true, usualHours: 0.5 },
   {
     id: '',
     kind: 'travel',
@@ -121,8 +133,13 @@ export async function setUpGeoNotifications(): Promise<void> {
   for (const sample of SAMPLES) {
     const actions = promptText(sample).actions.map((a) => ({
       identifier: a.answer,
-      // A break's length varies, so its notification button says just "Log break".
-      buttonTitle: sample.kind === 'break' && a.answer === 'break' ? 'Log break' : a.label,
+      // A break's length varies, so its notification buttons say just "Log break".
+      buttonTitle:
+        sample.kind === 'break' && a.answer === 'break'
+          ? 'Log break'
+          : a.answer === 'extra'
+            ? 'Log + usual break'
+            : a.label,
       options: { opensAppToForeground: true },
     }));
     await Notifications.setNotificationCategoryAsync(category(sample), actions);
@@ -139,13 +156,20 @@ function content(p: GeoPrompt) {
   };
 }
 
-/** Sends a question as a notification now. */
-export async function notifyPrompt(p: GeoPrompt): Promise<void> {
+/** Sends a question as a notification now, or at `at`. */
+export async function notifyPrompt(p: GeoPrompt, at: number | null = null): Promise<void> {
   await Notifications.scheduleNotificationAsync({
     identifier: p.id,
     content: content(p),
-    trigger: null,
+    trigger:
+      at == null ? null : { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
   });
+}
+
+/** Takes back a question's notification, sent or still scheduled. */
+export async function cancelPromptNotification(id: string): Promise<void> {
+  await Notifications.cancelScheduledNotificationAsync(id);
+  await Notifications.dismissNotificationAsync(id).catch(() => {});
 }
 
 /** "Clock out?" for 5 minutes after leaving; cancelled if they come back sooner. */

@@ -75,15 +75,17 @@ Walk or drive well past the edge of the circle.
 
 **Walk through a day.** Start with nothing logged today.
 
-| Do this                                                  | Expect                                                                                                                                    |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Arrive at a place with a circle                          | Notification **At (place)**: "Clock in at (time)?" **Clock in** sets the start to when you arrived, and the location if blank.            |
-| Leave and come back within 5 minutes                     | Nothing.                                                                                                                                  |
-| Leave for more than 5 minutes                            | About 5 minutes after leaving: **Left (place)**: "Clock out at (time)?" with **Clock out** / **On a break**.                              |
-| Tap **On a break**, then come back                       | **Back at (place)**: "Were you on a break?" **Log (n) min break** adds the time away to the break. **I was working** changes nothing.     |
-| Tap **Clock out**, then come back                        | **Back at (place)** offers to undo the clock out and log the time away as a break, or **Stay clocked out**.                               |
-| Leave while clocked in and arrive at a _different_ place | **At (new place)**: "Log the drive as time worked?" **Count as worked** sets Travel to Yes. **Log as break** adds the drive to the break. |
-| Ignore a notification and open the app                   | The same question is a card on the Week screen.                                                                                           |
+| Do this                                                                                | Expect                                                                                                                                                                   |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Arrive at a place with a circle                                                        | Notification **At (place)**: "Clock in at (time)?" **Clock in** sets the start to when you arrived, and the location if blank.                                           |
+| Leave and come back within 5 minutes                                                   | Nothing.                                                                                                                                                                 |
+| Leave for more than 5 minutes                                                          | About 5 minutes after leaving: **Left (place)**: "Clock out at (time)?" with **Clock out** / **On a break**.                                                             |
+| Tap **On a break**, then come back                                                     | About 3 minutes after you're back: **Back at (place)**: "Were you on a break?" **Log (n) min break** adds the time away to the break. **I was working** changes nothing. |
+| With a usual break set and none logged, take a break                                   | **Back at (place)** also offers **Log (n) min + usual (n) min**, which adds the time away on top of the usual break.                                                     |
+| On a break, come back within sight of the circle's edge for a minute, then leave again | No second **Clock out?**. When you're really back, one question covers the whole break from when you first left.                                                         |
+| Tap **Clock out**, then come back                                                      | **Back at (place)** offers to undo the clock out and log the time away as a break, or **Stay clocked out**.                                                              |
+| Leave while clocked in and arrive at a _different_ place                               | **At (new place)**: "Log the drive as time worked?" **Count as worked** sets Travel to Yes. **Log as break** adds the drive to the break.                                |
+| Ignore a notification and open the app                                                 | The same question is a card on the Week screen.                                                                                                                          |
 
 Also check:
 

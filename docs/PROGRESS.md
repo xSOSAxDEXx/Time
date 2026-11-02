@@ -116,8 +116,26 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
 
+## First phone test (2 Nov 2026, test build 2)
+
+The owner tried a break with arrive and leave. Break times were right.
+Found and fixed:
+
+- "Clock out?" kept coming back after answering "On a break". Likely cause:
+  near a circle's edge the phone briefly thought they were back, then
+  "left" again, starting a new trip. Now a return counts only after 3
+  minutes back; leaving sooner carries on the same trip with its answers.
+  Also: an answer tapped while the app was still loading its data could be
+  undone by that load (fixed), and answering an out-of-date notification
+  now clears it.
+- Owner request: "Were you on a break?" can add the time away on top of the
+  usual break ("Log + usual break"), shown when a usual break is set and no
+  break is logged yet. "Log break" still replaces the usual break.
+- Not tried yet: driving to another place, and a trip of 5 minutes or less.
+
 ## Waiting on the owner
 
-- Results from trying test build 2 on an Android phone (arrive and leave
-  especially) and the web app on an iPhone. See `docs/android-testing.md`.
+- Try test build 3: a break again (no repeat "Clock out?"), the "Log +
+  usual break" answer, a drive to another place, and a trip under 5
+  minutes. And the web app on an iPhone. See `docs/android-testing.md`.
 - Confirm the app ID `com.clocked.app` before any Play Store release.

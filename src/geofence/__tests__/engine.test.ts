@@ -5,6 +5,7 @@ import {
   answerPatch,
   applyEvent,
   EMPTY_GEO_STATE,
+  findPrompt,
   visiblePrompts,
   type GeoEvent,
   type GeoState,
@@ -198,5 +199,95 @@ describe('leaving and coming back', () => {
   it('old questions are dropped', () => {
     const { state } = run({}, enter('Main office', 7, 52));
     expect(visiblePrompts(state, {}, at(7, 52) + 19 * 3600_000)).toEqual([]);
+  });
+});
+
+describe('GPS blips at the edge of a circle', () => {
+  const working = of(day(TODAY, { start: '08:00' }));
+
+  it('a return asks only once they have been back 3 minutes', () => {
+    const { last, state } = run(
+      working,
+      enter('Main office', 8),
+      exit('Main office', 12),
+      enter('Main office', 12, 30),
+    );
+    expect(last.notifyAt).toBe(at(12, 33));
+    expect(visiblePrompts(state, working, at(12, 32))).toEqual([]);
+    expect(visiblePrompts(state, working, at(12, 33))).toMatchObject([{ kind: 'break' }]);
+  });
+
+  it('back for a moment and gone again: the same trip, not asked again', () => {
+    const { state, results } = run(working, enter('Main office', 8), exit('Main office', 12));
+    // "On a break" answered on the 12:05 "Clock out?".
+    const [out] = visiblePrompts(state, working, at(12, 6));
+    let s = afterAnswer(state, out, 'break');
+    expect(results[1].scheduleClockOut).not.toBeNull();
+
+    // The phone thinks they're back at 12:10, then gone at 12:11.
+    const blipIn = applyEvent(s, enter('Main office', 12, 10), working);
+    s = blipIn.state;
+    const blipOut = applyEvent(s, exit('Main office', 12, 11), working);
+    s = blipOut.state;
+    expect(blipOut.cancelPromptId).toBe(blipIn.notify!.id);
+    expect(blipOut.scheduleClockOut).toBeNull();
+    expect(s.pendingExit).toMatchObject({ at: at(12), answered: true });
+    expect(visiblePrompts(s, working, at(12, 20))).toEqual([]);
+
+    // Really back at 12:30: one question, for the whole break.
+    const back = applyEvent(s, enter('Main office', 12, 30), working);
+    expect(back.notify).toMatchObject({ kind: 'break', from: at(12), to: at(12, 30) });
+    expect(visiblePrompts(back.state, working, at(12, 40))).toHaveLength(1);
+  });
+
+  it('"Clock out?" answered after coming back still counts', () => {
+    const { state, last } = run(
+      working,
+      enter('Main office', 8),
+      exit('Main office', 12),
+      enter('Main office', 12, 30),
+    );
+    const id = `clockOut-${at(12)}`;
+    const out = findPrompt(state, working, id, at(12, 31));
+    expect(out).toMatchObject({ kind: 'clockOut', at: at(12) });
+    const s = afterAnswer(state, out!, 'break');
+    expect(s.prompts.find((p) => p.id === last.notify!.id)).toMatchObject({
+      exit: { answered: true },
+    });
+    expect(findPrompt(s, working, id, at(12, 32))).toBeNull();
+  });
+});
+
+describe('a break on top of the usual break', () => {
+  const working = of(day(TODAY, { start: '08:00' }));
+  const back = (entries: Entries) => {
+    let s: GeoState = EMPTY_GEO_STATE;
+    for (const e of [
+      enter('Main office', 8),
+      exit('Main office', 12),
+      enter('Main office', 12, 20),
+    ])
+      s = applyEvent(s, e, entries, 0.5).state;
+    return s.prompts[0];
+  };
+
+  it('offers "plus usual" when a usual break is set and none is logged', () => {
+    const p = back(working);
+    expect(promptText(p)).toMatchObject({
+      body: 'You were away 12:00 PM – 12:20 PM (20 min). Were you on a break? Log just this, or this on top of your usual 30 min break.',
+      actions: [
+        { answer: 'break', label: 'Log 20 min break' },
+        { answer: 'extra', label: 'Log 20 min + usual 30 min' },
+        { answer: 'worked', label: 'I was working' },
+      ],
+    });
+    expect(answerPatch(p, 'break', working)).toEqual({ breakHours: 20 / 60 });
+    expect(answerPatch(p, 'extra', working)).toEqual({ breakHours: 0.5 + 20 / 60 });
+  });
+
+  it('is not offered once a break is logged', () => {
+    const withBreak = of(day(TODAY, { start: '08:00', breakHours: 0.25 }));
+    const p = back(withBreak);
+    expect(promptText(p).actions.map((a) => a.answer)).toEqual(['break', 'worked']);
   });
 });

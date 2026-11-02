@@ -8,6 +8,10 @@
  * - Back within 5 minutes: nothing (a trip to the car).
  * - Back at the same place after longer: "Were you on a break?"
  * - Arrive at a different place: "Log the drive as time worked?"
+ *
+ * A return only counts once you've been back 3 minutes: near the edge of a
+ * circle the phone can briefly think you're inside, and leaving again that
+ * soon carries on the same trip (same leave time, same answers).
  */
 import { isInProgress } from '@/timecard/calc';
 import { clockOutDate } from '@/timecard/clock';
@@ -31,6 +35,9 @@ export const MIN_ABSENCE_MS = 5 * 60_000;
 
 /** A repeat "arrived" for the same place within this time is the phone re-sending it. */
 export const DUPLICATE_ENTER_MS = 10 * 60_000;
+
+/** How long you must be back before a return counts (GPS blips at a circle's edge). */
+export const RETURN_SETTLE_MS = 3 * 60_000;
 
 /** Questions older than this are dropped. */
 export const PROMPT_MAX_AGE_MS = 18 * 3600_000;
@@ -57,6 +64,10 @@ export type GeoPrompt =
       to: number;
       /** They said yes to "Clock out?" when they left. */
       clockedOut: boolean;
+      /** The usual break (hours) that can be added on top; 0 when it doesn't apply. */
+      usualHours?: number;
+      /** The trip this return ends, to carry on if they leave again right away. */
+      exit?: PendingExit;
     }
   | {
       id: string;
@@ -67,6 +78,7 @@ export type GeoPrompt =
       from: number;
       to: number;
       clockedOut: boolean;
+      exit?: PendingExit;
     }
   | { id: string; kind: 'clockOut'; date: DateKey; place: string; at: number };
 
@@ -82,8 +94,12 @@ export const EMPTY_GEO_STATE: GeoState = { inside: {}, pendingExit: null, prompt
 
 export type EventResult = {
   state: GeoState;
-  /** A question to send as a notification now. */
+  /** A question to send as a notification. */
   notify: GeoPrompt | null;
+  /** When to send it (null: now). */
+  notifyAt: number | null;
+  /** A question to take back (its notification hasn't been sent yet). */
+  cancelPromptId: string | null;
   /** Schedule the "Clock out?" notification for 5 minutes after leaving. */
   scheduleClockOut: PendingExit | null;
   /** Cancel the scheduled "Clock out?" notification. */
@@ -106,12 +122,32 @@ const fresh = (prompts: GeoPrompt[], now: number) =>
   prompts.filter((p) => now - promptTime(p) <= PROMPT_MAX_AGE_MS);
 
 export function promptTime(p: GeoPrompt): number {
-  return p.kind === 'break' || p.kind === 'travel' ? p.to : p.at;
+  return isReturn(p) ? p.to : p.at;
 }
 
-/** What to do about one arrive/leave event. */
-export function applyEvent(state: GeoState, event: GeoEvent, entries: Entries): EventResult {
-  const none = { notify: null, scheduleClockOut: null, cancelClockOut: false };
+type ReturnPrompt = Extract<GeoPrompt, { kind: 'break' | 'travel' }>;
+const isReturn = (p: GeoPrompt): p is ReturnPrompt => p.kind === 'break' || p.kind === 'travel';
+const arrivedAt = (p: ReturnPrompt) => (p.kind === 'break' ? p.place : p.toPlace);
+/** Back less than 3 minutes: the return might be a GPS blip. */
+const settling = (p: GeoPrompt, now: number) => isReturn(p) && now - p.to < RETURN_SETTLE_MS;
+
+/**
+ * What to do about one arrive/leave event. `usualBreakHours` is the usual
+ * break from Settings, offered on top of a break when none is logged yet.
+ */
+export function applyEvent(
+  state: GeoState,
+  event: GeoEvent,
+  entries: Entries,
+  usualBreakHours = 0,
+): EventResult {
+  const none = {
+    notify: null,
+    notifyAt: null,
+    cancelPromptId: null,
+    scheduleClockOut: null,
+    cancelClockOut: false,
+  };
   const prompts = fresh(state.prompts, event.at);
 
   if (event.kind === 'exit') {
@@ -121,6 +157,18 @@ export function applyEvent(state: GeoState, event: GeoEvent, entries: Entries): 
     delete inside[event.place];
     // Still inside another overlapping circle: not really gone.
     if (Object.keys(inside).length) return { state: { ...state, inside, prompts }, ...none };
+    // Back only a moment: the trip carries on, with the answers already given.
+    const blip = prompts.find(
+      (p): p is ReturnPrompt =>
+        isReturn(p) && !!p.exit && arrivedAt(p) === event.place && settling(p, event.at),
+    );
+    if (blip?.exit) {
+      return {
+        state: { inside, pendingExit: blip.exit, prompts: prompts.filter((p) => p !== blip) },
+        ...none,
+        cancelPromptId: blip.id,
+      };
+    }
     const shift = shiftAt(entries, event.at);
     const pendingExit = shift ? { place: event.place, at: event.at, date: shift.date } : null;
     return {
@@ -156,6 +204,8 @@ export function applyEvent(state: GeoState, event: GeoEvent, entries: Entries): 
               from: pe.at,
               to: event.at,
               clockedOut,
+              usualHours: usualBreakHours > 0 && !e.breakHours ? usualBreakHours : 0,
+              exit: pe,
             }
           : {
               id: `travel-${event.at}`,
@@ -166,10 +216,14 @@ export function applyEvent(state: GeoState, event: GeoEvent, entries: Entries): 
               from: pe.at,
               to: event.at,
               clockedOut,
+              exit: pe,
             };
       return {
         state: { ...base, prompts: [...prompts, prompt] },
+        // Asked once they've been back long enough to be sure.
         notify: prompt,
+        notifyAt: event.at + RETURN_SETTLE_MS,
+        cancelPromptId: null,
         scheduleClockOut: null,
         cancelClockOut,
       };
@@ -192,6 +246,8 @@ export function applyEvent(state: GeoState, event: GeoEvent, entries: Entries): 
     // One "Clock in?" at a time: the latest arrival replaces an older one.
     state: { ...base, prompts: [...prompts.filter((p) => p.kind !== 'clockIn'), prompt] },
     notify: prompt,
+    notifyAt: null,
+    cancelPromptId: null,
     scheduleClockOut: null,
     cancelClockOut,
   };
@@ -221,13 +277,13 @@ export function stillValid(p: GeoPrompt, entries: Entries): boolean {
 
 /** The questions to show now, oldest first. */
 export function visiblePrompts(state: GeoState, entries: Entries, now: number): GeoPrompt[] {
-  const out = fresh(state.prompts, now).filter((p) => stillValid(p, entries));
+  const out = fresh(state.prompts, now).filter((p) => stillValid(p, entries) && !settling(p, now));
   const out2 = clockOutPrompt(state, entries, now);
   return (out2 ? [...out, out2] : out).sort((a, b) => promptTime(a) - promptTime(b));
 }
 
 /** How a question can be answered. */
-export type GeoAnswer = 'yes' | 'break' | 'worked' | 'dismiss';
+export type GeoAnswer = 'yes' | 'break' | 'extra' | 'worked' | 'dismiss';
 
 const minutesBetween = (from: number, to: number) => Math.round((to - from) / 60_000);
 
@@ -254,6 +310,11 @@ export function answerPatch(
       const reopen = p.clockedOut ? { end: '' } : {};
       const away = minutesToHours(minutesBetween(p.from, p.to));
       if (answer === 'break') return { ...reopen, breakHours: e.breakHours + away };
+      // On top of the usual break (only while no other break is logged).
+      if (answer === 'extra') {
+        const usual = p.kind === 'break' && !e.breakHours ? (p.usualHours ?? 0) : 0;
+        return { ...reopen, breakHours: e.breakHours + usual + away };
+      }
       if (answer === 'worked')
         return { ...reopen, ...(p.kind === 'travel' ? { travel: 'Yes' as const } : {}) };
       return null;
@@ -262,11 +323,23 @@ export function answerPatch(
 }
 
 /** The state after a question is answered (or dismissed). */
-export function afterAnswer(state: GeoState, p: GeoPrompt): GeoState {
+export function afterAnswer(state: GeoState, p: GeoPrompt, answer?: GeoAnswer): GeoState {
   if (p.kind === 'clockOut') {
-    return state.pendingExit && state.pendingExit.at === p.at
-      ? { ...state, pendingExit: { ...state.pendingExit, answered: true } }
-      : state;
+    if (state.pendingExit && state.pendingExit.at === p.at)
+      return { ...state, pendingExit: { ...state.pendingExit, answered: true } };
+    // Answered after coming back: remember it on that trip's return question.
+    return {
+      ...state,
+      prompts: state.prompts.map((x) =>
+        isReturn(x) && x.exit?.at === p.at
+          ? {
+              ...x,
+              exit: { ...x.exit, answered: true },
+              ...(answer === 'yes' ? { clockedOut: true } : {}),
+            }
+          : x,
+      ),
+    };
   }
   return { ...state, prompts: state.prompts.filter((x) => x.id !== p.id) };
 }
@@ -278,8 +351,15 @@ export function findPrompt(
   id: string,
   now: number,
 ): GeoPrompt | null {
-  return (
-    state.prompts.find((p) => p.id === id) ??
-    (clockOutPrompt(state, entries, now)?.id === id ? clockOutPrompt(state, entries, now) : null)
-  );
+  const found = state.prompts.find((p) => p.id === id);
+  if (found) return found;
+  const out = clockOutPrompt(state, entries, now);
+  if (out?.id === id) return out;
+  // "Clock out?" answered from its notification after they'd already come back.
+  for (const p of state.prompts) {
+    const pe = isReturn(p) ? p.exit : undefined;
+    if (pe && !pe.answered && `clockOut-${pe.at}` === id && openShift(entries, pe.date))
+      return { id, kind: 'clockOut', date: pe.date, place: pe.place, at: pe.at };
+  }
+  return null;
 }

@@ -139,16 +139,24 @@ Locations list a circle ("Set to where I am now", 100–500 m). Android then
 wakes Clocked when you arrive at or leave one, even with the app closed,
 and Clocked **asks**: it never logs anything on its own.
 
-| What happened                           | Question                                                    |
-| --------------------------------------- | ----------------------------------------------------------- |
-| Arrived, nothing started today          | Clock in? (at the arrival time)                             |
-| Left while clocked in, gone over 5 min  | Clock out? (at the time you left) / On a break              |
-| Back at the same place after over 5 min | Were you on a break? (logs the time away)                   |
-| Arrived at a different place            | Log the drive as time worked? (Travel = Yes) / Log as break |
-| Away 5 minutes or less                  | Nothing                                                     |
+| What happened                           | Question                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------- |
+| Arrived, nothing started today          | Clock in? (at the arrival time)                                           |
+| Left while clocked in, gone over 5 min  | Clock out? (at the time you left) / On a break                            |
+| Back at the same place after over 5 min | Were you on a break? (logs the time away, or adds it to your usual break) |
+| Arrived at a different place            | Log the drive as time worked? (Travel = Yes) / Log as break               |
+| Away 5 minutes or less                  | Nothing                                                                   |
 
 Questions come as notifications with answer buttons and as cards on the
-Week screen; answering one clears both. The pure rules are in
+Week screen; answering one clears both. A return is asked about once you've
+been back 3 minutes: near the edge of a circle the phone can briefly think
+you're inside, and leaving again that soon carries on the same trip, with
+the answers you already gave.
+
+When you have a usual break set (Settings → Work day) and no break is
+logged yet, "Were you on a break?" has a third answer that logs the time
+away **on top of** the usual break, for an extra break. "Log break" alone
+replaces the usual break with the time away. The pure rules are in
 `src/geofence/engine.ts`; the background task is `src/geofence/task.ts`.
 
 Limits, honestly:

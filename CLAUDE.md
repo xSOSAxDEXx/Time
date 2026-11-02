@@ -227,7 +227,12 @@ closed; iPhone uses the web app). Off by default.
   time you left), or "On a break".
 - Away **5 minutes or less**: ignored.
 - Back at the **same place** after more than 5 minutes: **"Were you on a
-  break?"** (logs the time away as break, or "I was working").
+  break?"** (logs the time away as break, or "I was working"). With a usual
+  break set and no break logged, a third answer adds the time away **on top
+  of** the usual break (owner request, after the first phone test).
+- A return counts once you've been back 3 minutes; leaving again sooner is
+  a GPS blip at the circle's edge and the same trip carries on (no second
+  "Clock out?").
 - Arrive at a **different place**: **"Log the drive as time worked?"**
   (marks Travel = Yes and counts it, or logs it as break).
 - If you said yes to "Clock out?" and come back, it offers to undo the
