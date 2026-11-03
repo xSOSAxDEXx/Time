@@ -65,6 +65,24 @@ describe('take-home and left over', () => {
     expect(m.leftOver).toBeCloseTo(m.takeHome - 1000);
   });
 
+  it('a tax can be dollars per paycheck or per month instead of a %', () => {
+    const m = moneyFrom(
+      4000,
+      {
+        ...finance,
+        federalPct: 150,
+        statePct: 60,
+        taxUnits: { federal: 'paycheck', state: 'month' },
+      },
+      0.5,
+    );
+    // 150 a paycheck, 26 a year, over 12 months; half a month counted.
+    expect(m.federal).toBeCloseTo(((150 * 26) / 12) * 0.5);
+    expect(m.state).toBeCloseTo(30);
+    // The rest are still percentages (health is 100 a month, half counted).
+    expect(m.fica).toBeCloseTo(3950 * 0.0765);
+  });
+
   it('a part month gets that share of fixed amounts; gas comes off what is left', () => {
     const m = moneyFrom(2000, finance, 0.5, 12.8);
     expect(m.deductions).toBeCloseTo(100 + 50 + 40);

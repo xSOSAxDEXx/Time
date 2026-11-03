@@ -72,6 +72,7 @@ export async function syncGeofences(
     return null;
   }
   if (started && key === registeredKey) return key;
+  // Registering again replaces what Android had for this task.
   await Location.startGeofencingAsync(GEOFENCE_TASK, regions);
   return key;
 }

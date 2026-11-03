@@ -106,6 +106,25 @@ describe('Settings: finance and driving', () => {
   });
 });
 
+describe('Settings: taxes', () => {
+  it('a tax can be dollars per paycheck instead of a %', async () => {
+    useSettings.getState().update({ finance: { ...DEFAULT_FINANCE, federalPct: 12 } });
+    await renderRouter(routes, { initialUrl: '/settings' });
+    expect(screen.getByLabelText('Federal income tax amount, in percent')).toBeOnTheScreen();
+    const [perPaycheck] = screen.getAllByRole('radio', { name: '$ per paycheck' });
+    await act(async () => fireEvent.press(perPaycheck));
+    // A % doesn't turn into dollars, so it starts again at 0.
+    expect(useSettings.getState().finance).toMatchObject({
+      federalPct: 0,
+      taxUnits: { federal: 'paycheck' },
+    });
+    const field = screen.getByLabelText('Federal income tax amount, in dollars');
+    await act(async () => fireEvent.changeText(field, '145.5'));
+    await act(async () => fireEvent(field, 'blur'));
+    expect(useSettings.getState().finance.federalPct).toBe(145.5);
+  });
+});
+
 describe('Day editor: drives', () => {
   it('adds a drive, and typing its miles saves the route for next time', async () => {
     useSettings.getState().update({

@@ -20,6 +20,12 @@ import {
 
 const ANSWERS: GeoAnswer[] = ['yes', 'break', 'extra', 'worked', 'dismiss'];
 
+/**
+ * Android forgets the circles when the phone restarts (and can drop them
+ * at other times), so the first sync after each start registers them again.
+ */
+let registeredThisRun = false;
+
 function onResponse(r: Notifications.NotificationResponse | null) {
   const id = r?.notification.request.content.data?.promptId;
   const answer = r?.actionIdentifier as GeoAnswer;
@@ -56,8 +62,9 @@ export function useGeofencing(): void {
     const regions = JSON.parse(regionKey) as ReturnType<typeof regionsFor>;
     const { registeredKey, setRegisteredKey } = useGeo.getState();
     const run = regions.length
-      ? syncGeofences(regions, registeredKey)
+      ? syncGeofences(regions, registeredThisRun ? registeredKey : null)
       : stopGeofences().then(() => null);
+    registeredThisRun = true;
     // Without "all the time" location access Android refuses; Settings explains that.
     run.then(setRegisteredKey, () => setRegisteredKey(null));
   }, [regionKey, settingsReady, geoReady]);

@@ -68,6 +68,16 @@ Needs location set to **Allow all the time** and notifications on.
       **Open phone settings**.
 - [ ] Stand at a place and tap **Set to where I am now** under it. It shows
       "✓ Set · 150 m circle". Try another circle size.
+- [ ] For a big site, tap **Outline** under it. In Google Maps, press and
+      hold each corner of the site, tap the coordinates at the top to copy
+      them, and paste them into **Paste corners** (one at a time or all
+      together), going round the edge in order. Tap **Add pasted corners**.
+      The drawing shows the outline (blue) inside the dashed circle Android
+      will watch, and it says "✓ Outline · N corners · N m circle".
+- [ ] Standing at the site, **Check where I am** says "inside the
+      outline". After the phone has noticed you arriving, it also says when.
+- [ ] After restarting the phone, open Clocked once (it registers the
+      places again).
 
 Android can take a few minutes to notice you arriving or leaving, more so
 with the screen off or battery saver on. Use the 150 m circle or bigger.

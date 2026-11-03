@@ -218,7 +218,14 @@ Geofencing, **Android only** (browsers can't watch location with the page
 closed; iPhone uses the web app). Off by default.
 
 - Each place in the Locations list can have a **circle** (set to where the
-  phone is now; 100 / 150 / 250 / 500 m).
+  phone is now; 100 / 150 / 250 / 500 m), or for a big site an **outline**
+  (owner request, 3 Nov 2026): corners pasted from Google Maps (dropped
+  pins' coordinates, a link, or a My Maps KML) or added while standing at
+  each corner. Android only watches circles, so Clocked registers the
+  smallest circle covering the outline plus 30 m. No map in the app (that
+  would need a Google Cloud account and API key).
+- The circles are registered again every time the app starts (Android
+  forgets them when the phone restarts).
 - **Ask first, never log on its own.** Questions come as notifications with
   answer buttons, and as cards on the Week screen.
 - Arrive with nothing started today: **"Clock in?"** (logs the arrival
@@ -248,9 +255,9 @@ closed; iPhone uses the web app). Off by default.
 Settings → Finance and bills, and a **Money** tab. Needs an hourly rate.
 
 - How often you're paid (weekly / every 2 weeks / twice a month / monthly).
-- **Taxes as percentages** of pay: federal, state, local, and Social
-  Security + Medicare (7.65% filled in). Copied from a pay stub; no tax
-  brackets.
+- **Taxes** from a pay stub: federal, state, local, and Social Security +
+  Medicare (7.65% filled in). Each is a % of pay, $ per paycheck or $ per
+  month (owner request, 3 Nov 2026); no tax brackets.
 - **Paycheck deductions** (401(k), Roth 401(k), health, dental, vision, HSA,
   other): % of pay, $ per paycheck or $ per month, before or after tax.
   Before-tax lowers income tax; before-tax health ones also lower Social

@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 3 Nov 2026 (finance, bills and driving)._
+_Last updated: 3 Nov 2026 (tax amounts in dollars, outlines for big places)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -116,6 +116,23 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
   screen readers.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
+
+## Dollar taxes and place outlines (3 Nov 2026, owner request)
+
+- Each tax can be % of pay, $ per paycheck or $ per month, like the
+  deductions. Switching between a % and dollars resets that tax to 0.
+  Dollar taxes are spread by month the same way as fixed deductions.
+- Arrive and leave didn't notice the owner arriving at work: the site is
+  bigger than the circle. A place can now have an **outline** of corners
+  pasted from Google Maps (or added by standing at each one); Android
+  watches the smallest circle covering it plus 30 m. **Check where I am**
+  shows whether the phone is inside each place.
+- Also fixed: the circles weren't registered again after a phone restart
+  (Android forgets them). They're now registered each time the app starts.
+- Not done (needs the owner's OK): a map inside the app to draw on. It
+  would need a Google Cloud account with billing and a Maps API key.
+  Checking the exact outline (not just its circle) would need location
+  tracking while near the site, which costs battery.
 
 ## Finance, bills and driving (3 Nov 2026, owner request)
 

@@ -135,8 +135,9 @@ official pay stub (`src/timecard/pay.ts`).
 ## Money: take-home pay and bills
 
 Settings → **Finance and bills** (needs an hourly rate in Pay). Enter your
-tax rates as percentages (federal, state, local, and Social Security +
-Medicare, 7.65% filled in), paycheck deductions (401(k), health, dental,
+taxes from a pay stub (federal, state, local, and Social Security +
+Medicare, 7.65% filled in), each as a % of pay, $ per paycheck or $ per
+month, paycheck deductions (401(k), health, dental,
 HSA and so on: % of pay, $ per paycheck or $ per month, before or after
 tax) and bills (weekly, monthly or yearly). The **Money** tab shows each
 month's and the year's gross pay, take-home pay and what's left after bills
@@ -171,6 +172,17 @@ Locations list a circle ("Set to where I am now", 100–500 m). Android then
 wakes Clocked when you arrive at or leave one, even with the app closed,
 and Clocked **asks**: it never logs anything on its own.
 
+For a big site, use **Outline** instead: in Google Maps, press and hold on
+each corner to drop a pin, tap its coordinates to copy them, and paste them
+into Clocked (several at once is fine; a Google Maps link or the
+`<coordinates>` of a Google My Maps KML file work too), or stand at each
+corner and tap **Add a corner where I am**. Android can only watch circles,
+so Clocked registers the smallest circle covering the outline plus 30 m and
+draws both so a wrong corner stands out. **Check where I am** says whether
+you're inside each place right now. There's no map inside the app: that
+would need a Google Cloud account with billing and an API key. The maths is
+in `src/geofence/outline.ts`.
+
 | What happened                           | Question                                                                  |
 | --------------------------------------- | ------------------------------------------------------------------------- |
 | Arrived, nothing started today          | Clock in? (at the arrival time)                                           |
@@ -201,6 +213,8 @@ Limits, honestly:
   for Clocked if questions don't come). Circles under about 150 m can be
   missed.
 - Breaks taken without leaving the circle can't be detected.
+- Android forgets the circles when the phone restarts. Clocked registers
+  them again whenever it opens, so open it once after a restart.
 - Your location stays on the phone. Only the circles are saved, and they're
   in backups; no location history is kept.
 - If Clocked is ever published on the Play Store, background location needs

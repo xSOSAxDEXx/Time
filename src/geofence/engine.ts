@@ -18,6 +18,8 @@ import { clockOutDate } from '@/timecard/clock';
 import { clockTimeOf, minutesToHours, toKey } from '@/timecard/dates';
 import type { DateKey, Entries, Entry } from '@/timecard/types';
 
+import type { LatLng } from './outline';
+
 /** A place from the Locations list with its circle on the map. */
 export type GeoPlace = {
   /** The location's name in Settings → Lists. */
@@ -25,6 +27,11 @@ export type GeoPlace = {
   latitude: number;
   longitude: number;
   radiusMeters: number;
+  /**
+   * The place's corners, for a big site (outline.ts). When set, the circle
+   * above is worked out from them to cover the whole outline.
+   */
+  outline?: LatLng[];
 };
 
 export const RADIUS_CHOICES = [100, 150, 250, 500] as const;

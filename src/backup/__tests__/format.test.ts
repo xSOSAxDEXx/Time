@@ -38,12 +38,28 @@ describe('Clocked backups', () => {
       name: 'Sample Person',
       hourlyRate: 25,
       usualBreakMinutes: 30,
+      geofencing: true,
+      places: [
+        { location: 'Main office', latitude: 10.002, longitude: 20.002, radiusMeters: 150 },
+        {
+          location: 'Client site',
+          latitude: 10.5,
+          longitude: 20.5,
+          radiusMeters: 340,
+          outline: [
+            { latitude: 10.498, longitude: 20.498 },
+            { latitude: 10.502, longitude: 20.498 },
+            { latitude: 10.502, longitude: 20.502 },
+          ],
+        },
+      ],
       finance: {
         paySchedule: 'weekly' as const,
         federalPct: 9.5,
         statePct: 4,
-        localPct: 1,
+        localPct: 40,
         ficaPct: 7.65,
+        taxUnits: { local: 'paycheck' as const },
         deductions: [
           {
             id: 'd1',
@@ -88,6 +104,9 @@ describe('Clocked backups', () => {
         ...backup.settings,
         finance: {
           federalPct: 250,
+          statePct: 320,
+          localPct: 75,
+          taxUnits: { state: 'paycheck', local: 'year' },
           deductions: [
             { name: 'Too much', unit: 'percent', amount: 400 },
             { name: 'Health', kind: 'health', unit: 'paycheck', amount: 80, pretax: true },
@@ -109,6 +128,10 @@ describe('Clocked backups', () => {
     expect(r.repairedDays).toBe(1);
     expect(r.settings.finance).toMatchObject({
       federalPct: 0,
+      // Dollars per paycheck may be over 100; an unknown unit stays a %.
+      statePct: 320,
+      localPct: 75,
+      taxUnits: { state: 'paycheck' },
       ficaPct: 7.65,
       deductions: [{ name: 'Health', kind: 'health', unit: 'paycheck', amount: 80, pretax: true }],
       bills: [],

@@ -3,10 +3,12 @@ import { StyleSheet, View } from 'react-native';
 import {
   DEFAULT_FINANCE,
   useSettings,
+  type AmountUnit,
   type Bill,
   type Deduction,
   type Finance,
   type PaySchedule,
+  type TaxKey,
 } from '@/store/settings';
 import { formatMoney } from '@/timecard/pay';
 import { perMonth } from '@/timecard/money';
@@ -32,6 +34,13 @@ const UNITS: [Deduction['unit'], string][] = [
   ['paycheck', '$ per paycheck'],
   ['month', '$ per month'],
 ];
+
+const TAXES = [
+  ['federal', 'federalPct', 'Federal income tax'],
+  ['state', 'statePct', 'State income tax'],
+  ['local', 'localPct', 'Local or city tax'],
+  ['fica', 'ficaPct', 'Social Security + Medicare'],
+] as const satisfies readonly [TaxKey, keyof Finance, string][];
 
 const PERS: [Bill['per'], string][] = [
   ['week', 'Weekly'],
@@ -102,33 +111,49 @@ export function FinanceSection() {
         />
       </Labeled>
 
-      <AppText variant="label">Taxes (% of pay)</AppText>
-      <View style={styles.grid}>
-        {(
-          [
-            ['federalPct', 'Federal', 'Federal income tax'],
-            ['statePct', 'State', 'State income tax'],
-            ['localPct', 'Local', 'Local or city tax'],
-            ['ficaPct', 'Soc. Sec. + Medicare', 'Social Security and Medicare'],
-          ] as const
-        ).map(([key, short, label]) => (
-          <View key={key} style={styles.cell}>
-            <AppText variant="caption" tone="muted">
-              {short} %
-            </AppText>
-            <NumberField
-              label={label}
-              unit="percent"
-              max={100}
-              value={finance[key]}
-              onChange={(v) => set({ [key]: v })}
+      <AppText variant="label">Taxes</AppText>
+      {TAXES.map(([key, field, label]) => {
+        const unit: AmountUnit = finance.taxUnits?.[key] ?? 'percent';
+        return (
+          <View key={key} style={card}>
+            <View style={styles.row}>
+              <AppText variant="bodyStrong" style={styles.grow}>
+                {label}
+              </AppText>
+              <View style={styles.amount}>
+                <NumberField
+                  label={`${label} amount`}
+                  unit={unit === 'percent' ? 'percent' : 'dollars'}
+                  max={unit === 'percent' ? 100 : 1_000_000}
+                  value={finance[field]}
+                  onChange={(v) => set({ [field]: v })}
+                />
+              </View>
+            </View>
+            <ChoiceChips
+              label={`${label}: how it's given`}
+              clearable={false}
+              options={UNITS.map(([, l]) => l)}
+              value={UNITS.find(([k]) => k === unit)?.[1] ?? UNITS[0][1]}
+              onChange={(l) => {
+                const next = UNITS.find(([, x]) => x === l)?.[0] ?? unit;
+                if (next === unit) return;
+                // A % and a dollar amount don't convert, so switching starts it at 0.
+                const was = unit === 'percent';
+                const now = next === 'percent';
+                set({
+                  taxUnits: { ...finance.taxUnits, [key]: next },
+                  ...(was !== now ? { [field]: 0 } : {}),
+                });
+              }}
             />
           </View>
-        ))}
-      </View>
+        );
+      })}
       <AppText variant="caption" tone="muted">
-        Your pay stub&apos;s tax divided by its gross pay gives the rate. Social Security + Medicare
-        is 7.65% for most people.
+        Copy each tax from a recent pay stub: the dollar amount per paycheck, or the % (tax ÷ gross
+        pay). A % follows your hours; a dollar amount stays the same each paycheck. Social Security
+        + Medicare is 7.65% for most people.
       </AppText>
 
       <AppText variant="label">Paycheck deductions</AppText>
@@ -260,8 +285,6 @@ export function FinanceSection() {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  cell: { flexGrow: 1, flexBasis: 140, gap: space.xs },
   item: { gap: space.sm, padding: space.sm, borderRadius: radius.md, borderWidth: 1 },
   row: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   grow: { flex: 1 },

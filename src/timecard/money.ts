@@ -5,6 +5,8 @@
  *
  * For each month:
  * - Gross = the pay estimate for the days in it (pay.ts).
+ * - Taxes are a % of pay, or a fixed amount per paycheck or month (spread
+ *   like the deductions below).
  * - Before-tax deductions lower the pay income tax is worked out on; health
  *   ones (not retirement) also lower the pay Social Security + Medicare is on.
  * - Take-home = gross − taxes − every deduction.
@@ -14,7 +16,15 @@
  *   today) gets that share of the fixed amounts, so the current month isn't
  *   charged a whole month of bills against half a month of pay.
  */
-import type { Bill, Deduction, Driving, Finance, PaySchedule, Route } from '@/store/settings';
+import type {
+  Bill,
+  Deduction,
+  Driving,
+  Finance,
+  PaySchedule,
+  Route,
+  TaxKey,
+} from '@/store/settings';
 
 import { addDays, fromKey, toKey } from './dates';
 import { formatMoney, rangePay, type PayRule } from './pay';
@@ -160,10 +170,18 @@ export function moneyFrom(gross: number, finance: Finance, share = 1, gas = 0): 
     }
   }
   const taxable = Math.max(0, gross - beforeIncomeTax);
-  const federal = (taxable * finance.federalPct) / 100;
-  const state = (taxable * finance.statePct) / 100;
-  const local = (taxable * finance.localPct) / 100;
-  const fica = (Math.max(0, gross - beforeFica) * finance.ficaPct) / 100;
+  const units = finance.taxUnits ?? {};
+  // A % of the pay it's on, or a fixed amount spread like the deductions.
+  const tax = (key: TaxKey, value: number, on: number) => {
+    const unit = units[key] ?? 'percent';
+    return unit === 'percent'
+      ? (on * value) / 100
+      : perMonth(value, unit, finance.paySchedule) * share;
+  };
+  const federal = tax('federal', finance.federalPct, taxable);
+  const state = tax('state', finance.statePct, taxable);
+  const local = tax('local', finance.localPct, taxable);
+  const fica = tax('fica', finance.ficaPct, Math.max(0, gross - beforeFica));
   const taxes = federal + state + local + fica;
   const takeHome = gross - taxes - deductions;
   const bills =

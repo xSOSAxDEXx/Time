@@ -12,14 +12,17 @@
  * can't be read are skipped (a day) or left blank (a field).
  */
 import type { GeoPlace } from '@/geofence/engine';
+import { MAX_CORNERS, type LatLng } from '@/geofence/outline';
 import {
   DEFAULT_DRIVING,
   DEFAULT_FINANCE,
   DEFAULT_SETTINGS,
   type Bill,
+  type AmountUnit,
   type Deduction,
   type Driving,
   type Finance,
+  type TaxKey,
   type OvertimeRule,
   type Route,
   type Settings,
@@ -305,12 +308,22 @@ function readFinance(v: unknown): Finance | null {
         return [{ id: id(b.id, i), name: b.name.slice(0, MAX_TEXT), amount, per }];
       })
     : [];
+  const rawUnits = isObject(v.taxUnits) ? v.taxUnits : {};
+  const taxUnits: Partial<Record<TaxKey, AmountUnit>> = {};
+  for (const key of ['federal', 'state', 'local', 'fica'] as const) {
+    const u = rawUnits[key];
+    if (u === 'paycheck' || u === 'month') taxUnits[key] = u;
+  }
+  // A percentage (0–100), or dollars when the tax's unit says so.
+  const tax = (key: TaxKey, x: unknown, fallback: number) =>
+    taxUnits[key] ? (money(x) ?? 0) : pct(x, fallback);
   return {
     paySchedule: schedules.find((x) => x === v.paySchedule) ?? DEFAULT_FINANCE.paySchedule,
-    federalPct: pct(v.federalPct, 0),
-    statePct: pct(v.statePct, 0),
-    localPct: pct(v.localPct, 0),
-    ficaPct: pct(v.ficaPct, DEFAULT_FINANCE.ficaPct),
+    federalPct: tax('federal', v.federalPct, 0),
+    statePct: tax('state', v.statePct, 0),
+    localPct: tax('local', v.localPct, 0),
+    ficaPct: tax('fica', v.ficaPct, DEFAULT_FINANCE.ficaPct),
+    ...(Object.keys(taxUnits).length ? { taxUnits } : {}),
     deductions,
     bills,
   };
@@ -388,12 +401,26 @@ const SETTING_READERS: { [K in keyof Settings]: (v: unknown) => Settings[K] | nu
               inRange(p.longitude, -180, 180) &&
               inRange(p.radiusMeters, 50, 5000),
           )
-          .map((p) => ({
-            location: p.location.slice(0, MAX_TEXT),
-            latitude: p.latitude,
-            longitude: p.longitude,
-            radiusMeters: p.radiusMeters,
-          }))
+          .map((p) => {
+            const outline = Array.isArray(p.outline)
+              ? p.outline
+                  .slice(0, MAX_CORNERS)
+                  .filter(
+                    (c): c is LatLng =>
+                      isObject(c) &&
+                      inRange(c.latitude, -90, 90) &&
+                      inRange(c.longitude, -180, 180),
+                  )
+                  .map((c) => ({ latitude: c.latitude, longitude: c.longitude }))
+              : [];
+            return {
+              location: p.location.slice(0, MAX_TEXT),
+              latitude: p.latitude,
+              longitude: p.longitude,
+              radiusMeters: p.radiusMeters,
+              ...(outline.length ? { outline } : {}),
+            };
+          })
       : null,
   finance: readFinance,
   driving: readDriving,

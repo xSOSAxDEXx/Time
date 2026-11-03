@@ -38,14 +38,23 @@ export type Deduction = {
   name: string;
   kind: 'retirement' | 'health' | 'other';
   amount: number;
-  unit: 'percent' | 'paycheck' | 'month';
+  unit: AmountUnit;
   pretax: boolean;
 };
 
 /** A household bill paid from take-home pay. */
 export type Bill = { id: string; name: string; amount: number; per: 'week' | 'month' | 'year' };
 
-/** Finance and bills (CLAUDE.md §3.12). Rates are percentages of pay. */
+/** How a tax or deduction is given: % of pay, $ per paycheck or $ per month. */
+export type AmountUnit = 'percent' | 'paycheck' | 'month';
+
+export type TaxKey = 'federal' | 'state' | 'local' | 'fica';
+
+/**
+ * Finance and bills (CLAUDE.md §3.12). Each tax is a percentage of pay
+ * unless `taxUnits` says it's dollars per paycheck or per month (the
+ * `…Pct` fields then hold the dollars).
+ */
 export type Finance = {
   paySchedule: PaySchedule;
   federalPct: number;
@@ -53,6 +62,8 @@ export type Finance = {
   localPct: number;
   /** Social Security + Medicare (7.65% for most employees). */
   ficaPct: number;
+  /** Missing (older saves) or missing a tax: a percentage. */
+  taxUnits?: Partial<Record<TaxKey, AmountUnit>>;
   deductions: Deduction[];
   bills: Bill[];
 };

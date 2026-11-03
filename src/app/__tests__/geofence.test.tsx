@@ -138,6 +138,41 @@ describe('arrive and leave: Settings', () => {
     expect(location.__state.geofences).toBeNull();
   });
 
+  it('outlines a big place from pasted Google Maps points', async () => {
+    useSettings.getState().update({ geofencing: true });
+    await renderRouter(routes, { initialUrl: '/settings' });
+    await screen.findByRole('header', { name: 'Arrive and leave' });
+    await press("Draw Main office's outline from map points");
+    await act(async () =>
+      fireEvent.changeText(
+        screen.getByLabelText('Paste corners for Main office'),
+        '40.1, -75.2\n40.104, -75.2\n40.104, -75.196\n40.1, -75.196',
+      ),
+    );
+    await press('Add pasted corners to Main office');
+    await flush();
+    const [place] = useSettings.getState().places;
+    expect(place.outline).toHaveLength(4);
+    // The circle Android watches covers the whole outline.
+    expect(place.latitude).toBeCloseTo(40.102, 4);
+    expect(place.radiusMeters).toBeGreaterThan(300);
+    expect(screen.getByText(/✓ Outline · 4 corners/)).toBeOnTheScreen();
+    expect(location.__state.geofences).toMatchObject([
+      { identifier: 'Main office', radius: place.radiusMeters },
+    ]);
+
+    // Standing in the middle.
+    location.__state.position = { latitude: 40.102, longitude: -75.198 };
+    await press('Check where I am');
+    await flush();
+    expect(screen.getByText('Main office: inside the outline.')).toBeOnTheScreen();
+
+    await press("Remove Main office's last corner");
+    expect(useSettings.getState().places[0].outline).toHaveLength(3);
+    await press("Clear Main office's outline");
+    expect(useSettings.getState().places).toEqual([]);
+  });
+
   it('says what to do with "while using" location access only', async () => {
     location.__state.askAnswer = 'whileUsing';
     await renderRouter(routes, { initialUrl: '/settings' });
