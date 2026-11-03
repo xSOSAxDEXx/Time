@@ -7,6 +7,7 @@ import { Button } from '@/components/Button';
 import { ChoiceChips } from '@/components/ChoiceChips';
 import { NumberField } from '@/components/NumberField';
 import { Screen } from '@/components/Screen';
+import { TripsEditor } from '@/components/TripsEditor';
 import { TimeField } from '@/components/TimeField';
 import { useNow } from '@/hooks/useNow';
 import { useSoftConfirm } from '@/hooks/useSoftConfirm';
@@ -316,6 +317,9 @@ export default function DayScreen() {
           value={entry.location}
           onChange={(location) => update({ location })}
         />
+      </Field>
+      <Field label="Drives">
+        <TripsEditor entry={entry} onChange={update} />
       </Field>
       <Field label="Comment">
         <TextInput

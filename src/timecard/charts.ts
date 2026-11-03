@@ -155,3 +155,27 @@ export function columnPath(x: number, y: number, w: number, h: number, round: bo
     `H${n(x + w - r)}Q${n(x + w)},${n(y)} ${n(x + w)},${n(y + r)}V${n(y + h)}Z`
   );
 }
+
+/** A round step (1, 2 or 5 times a power of ten) giving about four steps up to `max`. */
+export function moneyStep(max: number): number {
+  const raw = Math.max(1, max / 4);
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const m = raw / pow;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * pow;
+}
+
+/** A round axis top for dollar amounts. */
+export function niceMoneyMax(value: number): number {
+  const v = Math.max(1, value * 1.08);
+  const step = moneyStep(v);
+  return Math.ceil(v / step) * step;
+}
+
+/** "$850", "$1.2k", "$12k": dollars short enough for a chart label. */
+export function shortMoney(v: number): string {
+  const a = Math.abs(v);
+  const sign = v < 0 ? '-' : '';
+  if (a < 1000) return `${sign}$${Math.round(a)}`;
+  const k = a / 1000;
+  return `${sign}$${k < 10 ? String(Math.round(k * 10) / 10) : String(Math.round(k))}k`;
+}

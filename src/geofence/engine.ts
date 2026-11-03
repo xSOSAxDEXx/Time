@@ -309,14 +309,19 @@ export function answerPatch(
       if (!e) return null;
       const reopen = p.clockedOut ? { end: '' } : {};
       const away = minutesToHours(minutesBetween(p.from, p.to));
-      if (answer === 'break') return { ...reopen, breakHours: e.breakHours + away };
+      // A drive is recorded as a trip either way, for miles and gas (§3.13).
+      const trip =
+        p.kind === 'travel' && (answer === 'worked' || answer === 'break' || answer === 'extra')
+          ? { trips: [...(e.trips ?? []), { from: p.fromPlace, to: p.toPlace }] }
+          : {};
+      if (answer === 'break') return { ...reopen, ...trip, breakHours: e.breakHours + away };
       // On top of the usual break (only while no other break is logged).
       if (answer === 'extra') {
         const usual = p.kind === 'break' && !e.breakHours ? (p.usualHours ?? 0) : 0;
-        return { ...reopen, breakHours: e.breakHours + usual + away };
+        return { ...reopen, ...trip, breakHours: e.breakHours + usual + away };
       }
       if (answer === 'worked')
-        return { ...reopen, ...(p.kind === 'travel' ? { travel: 'Yes' as const } : {}) };
+        return { ...reopen, ...trip, ...(p.kind === 'travel' ? { travel: 'Yes' as const } : {}) };
       return null;
     }
   }

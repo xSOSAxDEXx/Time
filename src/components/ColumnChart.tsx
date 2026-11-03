@@ -2,7 +2,14 @@ import { useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 
-import { axisStep, columnPath, niceMax } from '@/timecard/charts';
+import {
+  axisStep,
+  columnPath,
+  moneyStep,
+  niceMax,
+  niceMoneyMax,
+  shortMoney,
+} from '@/timecard/charts';
 import { formatHours } from '@/timecard/dates';
 import { radius, space, useTheme } from '@/theme';
 
@@ -39,6 +46,8 @@ type Props = {
   /** Show the value above every column (otherwise only when there are 10 or fewer). */
   allValues?: boolean;
   emptyText?: string;
+  /** What the column heights are: hours (default) or dollars. */
+  unit?: 'hours' | 'money';
 };
 
 // Chart rules from the HTML page (CLAUDE.md §3.5).
@@ -67,6 +76,7 @@ export function ColumnChart({
   legend,
   allValues = false,
   emptyText = 'No days in this range',
+  unit = 'hours',
 }: Props) {
   const { colors } = useTheme();
   const [width, setWidth] = useState(0);
@@ -78,8 +88,11 @@ export function ColumnChart({
   const twoLine = bars.some((b) => b.sub);
   const padBottom = twoLine ? 34 : 22;
   const totals = bars.map((b) => b.segments.reduce((sum, s) => sum + s.value, 0));
-  const max = niceMax(Math.max(reference, ...totals, 0));
-  const step = axisStep(max);
+  const money = unit === 'money';
+  const top = Math.max(reference, ...totals, 0);
+  const max = money ? niceMoneyMax(top) : niceMax(top);
+  const step = money ? moneyStep(max) : axisStep(max);
+  const label = money ? shortMoney : short;
   const innerW = Math.max(0, width - PAD.left - PAD.right);
   const innerH = HEIGHT - PAD.top - padBottom;
   const band = innerW / Math.max(1, bars.length);
@@ -154,7 +167,7 @@ export function ColumnChart({
                   fontFamily={FONT}
                   fill={colors.textMuted}
                   textAnchor="end">
-                  {String(v)}
+                  {money ? shortMoney(v) : String(v)}
                 </SvgText>
               ))}
               {shown != null ? (
@@ -191,7 +204,7 @@ export function ColumnChart({
                         fontWeight="600"
                         fill={colors.text}
                         textAnchor="middle">
-                        {short(totals[i])}
+                        {label(totals[i])}
                       </SvgText>
                     ) : null}
                     {i % labelEvery === 0 ? (

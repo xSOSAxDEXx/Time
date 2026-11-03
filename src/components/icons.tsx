@@ -53,3 +53,16 @@ export function SlidersIcon({ color, size = 24 }: IconProps) {
     </Svg>
   );
 }
+
+/** Money tab: a dollar sign in a circle. */
+export function DollarIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden>
+      <Circle cx={12} cy={12} r={9} {...stroke(color)} />
+      <Path
+        d="M14.8 9.2c-.4-1-1.5-1.7-2.8-1.7-1.6 0-2.8.9-2.8 2.1 0 2.9 5.6 1.6 5.6 4.6 0 1.2-1.2 2.2-2.8 2.2-1.4 0-2.5-.7-2.9-1.8M12 6v1.5M12 16.5V18"
+        {...stroke(color)}
+      />
+    </Svg>
+  );
+}

@@ -132,6 +132,38 @@ official pay stub (`src/timecard/pay.ts`).
   (or none) is paid at the regular rate. Holidays counted automatically are
   Company Holiday time off.
 
+## Money: take-home pay and bills
+
+Settings → **Finance and bills** (needs an hourly rate in Pay). Enter your
+tax rates as percentages (federal, state, local, and Social Security +
+Medicare, 7.65% filled in), paycheck deductions (401(k), health, dental,
+HSA and so on: % of pay, $ per paycheck or $ per month, before or after
+tax) and bills (weekly, monthly or yearly). The **Money** tab shows each
+month's and the year's gross pay, take-home pay and what's left after bills
+and gas, with a chart of every month.
+
+How it's worked out (`src/timecard/money.ts`):
+
+- Before-tax deductions lower the pay income tax is figured on; before-tax
+  health ones also lower Social Security + Medicare. Retirement ones don't.
+- Amounts per paycheck, week or year are spread evenly over the months. The
+  current month (and the first month you logged anything) only gets its
+  share of them, so bills aren't charged in full against a few days' pay.
+- It's an estimate from flat percentages, not tax brackets or a pay stub.
+  Copying the rates from a recent pay stub (tax ÷ gross) gets it closest.
+
+## Driving: miles and gas
+
+Settings → **Driving**: your car's MPG, the gas price, and a mileage
+reimbursement rate (your employer's, or the IRS business rate). Add the
+miles between two places once as a **route**. Each day can have drives:
+arrive and leave adds one when you answer its "Log the drive?" question,
+and the day editor (**Drives**) adds them by hand. Typing the miles for a
+drive with no route saves the route for next time. The Money tab totals
+miles, gas and reimbursement by month and year; gas comes off "left over".
+Drives and routes are in backups. The CSV export keeps the time card page's
+columns.
+
 ## Arrive and leave (Android)
 
 Settings → Arrive and leave (off by default). Give each place in your

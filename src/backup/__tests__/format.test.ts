@@ -15,7 +15,15 @@ function parsed(text: string) {
 describe('Clocked backups', () => {
   it('round-trips every day and setting', () => {
     const entries = {
-      '2030-01-08': day('2030-01-08', { start: '08:00', end: '16:30', breakHours: 0.5 }),
+      '2030-01-08': day('2030-01-08', {
+        start: '08:00',
+        end: '16:30',
+        breakHours: 0.5,
+        trips: [
+          { from: 'Main office', to: 'Client site' },
+          { from: 'Client site', to: 'Main office', miles: 21.5 },
+        ],
+      }),
       '2030-01-07': day('2030-01-07', {
         timeOffHours: 8,
         timeOffType: 'PTO',
@@ -30,6 +38,30 @@ describe('Clocked backups', () => {
       name: 'Sample Person',
       hourlyRate: 25,
       usualBreakMinutes: 30,
+      finance: {
+        paySchedule: 'weekly' as const,
+        federalPct: 9.5,
+        statePct: 4,
+        localPct: 1,
+        ficaPct: 7.65,
+        deductions: [
+          {
+            id: 'd1',
+            name: '401(k)',
+            kind: 'retirement' as const,
+            amount: 6,
+            unit: 'percent' as const,
+            pretax: true,
+          },
+        ],
+        bills: [{ id: 'b1', name: 'Phone', amount: 60, per: 'month' as const }],
+      },
+      driving: {
+        mpg: 28,
+        gasPrice: 3.1,
+        reimbursePerMile: 0.5,
+        routes: [{ from: 'Main office', to: 'Client site', miles: 20 }],
+      },
     };
     const backup = buildBackup(settings, entries, new Date(2030, 0, 9, 12));
     expect(backup.format).toBe('clocked-backup');
@@ -40,6 +72,53 @@ describe('Clocked backups', () => {
     expect(r.entries).toEqual(entries);
     expect(r.settings).toEqual(settings);
     expect([r.skippedDays, r.repairedDays, r.skippedSettings]).toEqual([0, 0, 0]);
+  });
+
+  it('skips unreadable trips, deductions, bills and routes', () => {
+    const backup = buildBackup(DEFAULT_SETTINGS, {}, new Date(2030, 0, 9));
+    const raw = {
+      ...backup,
+      entries: [
+        {
+          ...day('2030-01-08', { start: '08:00' }),
+          trips: [{ from: 'Main office', to: 'Vendor', miles: -3 }, { from: '', to: 'Vendor' }, 7],
+        },
+      ],
+      settings: {
+        ...backup.settings,
+        finance: {
+          federalPct: 250,
+          deductions: [
+            { name: 'Too much', unit: 'percent', amount: 400 },
+            { name: 'Health', kind: 'health', unit: 'paycheck', amount: 80, pretax: true },
+          ],
+          bills: [{ name: 'Rent', amount: 'lots', per: 'month' }],
+        },
+        driving: {
+          mpg: -1,
+          routes: [
+            { from: 'A', to: 'B' },
+            { from: 'A', to: 'C', miles: 9 },
+          ],
+        },
+      },
+    };
+    const r = parsed(JSON.stringify(raw));
+    // A trip with bad miles keeps the trip without them; the rest are dropped.
+    expect(r.entries['2030-01-08'].trips).toEqual([{ from: 'Main office', to: 'Vendor' }]);
+    expect(r.repairedDays).toBe(1);
+    expect(r.settings.finance).toMatchObject({
+      federalPct: 0,
+      ficaPct: 7.65,
+      deductions: [{ name: 'Health', kind: 'health', unit: 'paycheck', amount: 80, pretax: true }],
+      bills: [],
+    });
+    expect(r.settings.driving).toEqual({
+      mpg: null,
+      gasPrice: null,
+      reimbursePerMile: null,
+      routes: [{ from: 'A', to: 'C', miles: 9 }],
+    });
   });
 
   it('names the file by the local date', () => {

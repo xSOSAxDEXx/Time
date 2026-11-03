@@ -243,6 +243,41 @@ closed; iPhone uses the web app). Off by default.
 - Needs location access "all the time" and notifications. Uses
   `expo-location` and `expo-task-manager`.
 
+### 3.12 Finance and bills (owner request, 3 Nov 2026)
+
+Settings → Finance and bills, and a **Money** tab. Needs an hourly rate.
+
+- How often you're paid (weekly / every 2 weeks / twice a month / monthly).
+- **Taxes as percentages** of pay: federal, state, local, and Social
+  Security + Medicare (7.65% filled in). Copied from a pay stub; no tax
+  brackets.
+- **Paycheck deductions** (401(k), Roth 401(k), health, dental, vision, HSA,
+  other): % of pay, $ per paycheck or $ per month, before or after tax.
+  Before-tax lowers income tax; before-tax health ones also lower Social
+  Security + Medicare, retirement ones don't.
+- **Bills** (rent, car, phone, ...): weekly, monthly or yearly.
+- Three levels per month and year: **gross → take-home → left over**
+  (after bills and gas). Chart of each month's gross pay split into taxes,
+  deductions, bills and gas, and left over; plus figures for this month
+  and this year.
+- Fixed amounts are spread evenly over the year; a month only partly
+  counted (before the first logged day, or the current month) gets that
+  share. Always labelled as estimates, not a pay stub or tax advice.
+
+### 3.13 Driving (owner request, 3 Nov 2026)
+
+- A day can have **drives** (from place → to place). Arrive and leave adds
+  one when the drive question is answered "Count as worked" or "Log as
+  break"; the day editor can add them by hand (web and iPhone too).
+- **Routes**: the miles between two places, entered once (either way
+  round). Typing miles for a drive with no route saves the route; a
+  different number on a known route counts for that drive only.
+- Settings → Driving: MPG, gas price, and a reimbursement rate per mile.
+  Gas comes off "left over"; reimbursement is shown on its own (not every
+  employer pays it).
+- Money tab: miles, drives, gas and reimbursement for the month and year.
+  Drives and routes are in backups; the CSV keeps the HTML page's columns.
+
 ## 4. Design
 
 A clean, calm work tool. It should feel quick and trustworthy, like the
@@ -269,9 +304,9 @@ HTML page.
 ## 5. Suggested structure (mirror Luna)
 
 ```
-src/app/            # Expo Router screens: (tabs)/index (week), summary, charts, settings; day/[date]
+src/app/            # Expo Router screens: (tabs)/index (week), summary, charts, money, settings; day/[date]
 src/components/     # DayRow, DayEditor, WeekTable, StatCard, ColumnChart, RangePicker, ...
-src/timecard/       # calc.ts (formulas), dates.ts (week helpers), pay.ts, csv.ts
+src/timecard/       # calc.ts (formulas), dates.ts (week helpers), pay.ts, money.ts, csv.ts
 src/store/          # entries + settings (Zustand + AsyncStorage)
 src/backup/         # backup format, export, restore
 src/notifications/  # clock-out reminder (native + web)

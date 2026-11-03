@@ -94,6 +94,20 @@ Also check:
 - [ ] Questions still come after restarting the phone (open the app once
       after the restart if they don't).
 
+## 4a. Money and driving
+
+- [ ] Settings → Pay: set an hourly rate. Settings → Finance and bills:
+      enter tax rates from a pay stub, add a 401(k) and health insurance,
+      and a couple of bills. The **Money** tab's take-home is close to a
+      real paycheck's (for the same hours).
+- [ ] Settings → Driving: set MPG, gas price and a reimbursement rate, and
+      add a route with its miles.
+- [ ] A drive answered from arrive and leave shows under **Drives** in that
+      day's editor, with its miles and gas.
+- [ ] In the day editor, add a drive on a new route and type its miles: the
+      route appears in Settings → Driving.
+- [ ] The Money tab's miles, gas and reimbursement add up.
+
 ## 5. Backup and restore
 
 - [ ] Settings → Backup and export → **Back up** opens the share sheet with a
@@ -101,7 +115,7 @@ Also check:
 - [ ] **Export spreadsheet (CSV)** opens in a spreadsheet app with the same columns as
       the time card page.
 - [ ] **Restore** from the backup asks first (**Replace**), then brings everything back,
-      including the circles.
+      including the circles, finance settings, routes and drives.
 
 ## 6. Accessibility (Android)
 

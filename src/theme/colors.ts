@@ -31,6 +31,7 @@ const light = {
     remote: '#1BAF7A',
     grid: '#ECEEF1',
     reference: '#8A94A3',
+    other: '#7C5CD6',
   },
 };
 
@@ -60,6 +61,7 @@ const dark: Palette = {
     remote: '#199E70',
     grid: '#232A32',
     reference: '#6B7684',
+    other: '#9278E8',
   },
 };
 

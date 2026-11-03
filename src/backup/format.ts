@@ -12,10 +12,21 @@
  * can't be read are skipped (a day) or left blank (a field).
  */
 import type { GeoPlace } from '@/geofence/engine';
-import { DEFAULT_SETTINGS, type OvertimeRule, type Settings } from '@/store/settings';
+import {
+  DEFAULT_DRIVING,
+  DEFAULT_FINANCE,
+  DEFAULT_SETTINGS,
+  type Bill,
+  type Deduction,
+  type Driving,
+  type Finance,
+  type OvertimeRule,
+  type Route,
+  type Settings,
+} from '@/store/settings';
 import { isClockTime, isDateKey, toKey } from '@/timecard/dates';
 import type { HolidayRule } from '@/timecard/holidays';
-import { isEmptyEntry, type Entries, type Entry, type Travel } from '@/timecard/types';
+import { isEmptyEntry, type Entries, type Entry, type Travel, type Trip } from '@/timecard/types';
 
 export const BACKUP_FORMAT = 'clocked-backup';
 export const BACKUP_VERSION = 1;
@@ -80,6 +91,9 @@ const MAX_TEXT = 200;
 const MAX_COMMENT = 5000;
 const MAX_LIST = 100;
 const MAX_HOLIDAYS = 100;
+const MAX_TRIPS = 50;
+const MAX_MILES = 5000;
+const MAX_MONEY = 1_000_000;
 
 const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v != null && !Array.isArray(v);
@@ -110,6 +124,7 @@ type Fields = {
   travel: unknown;
   location: unknown;
   comment: unknown;
+  trips?: unknown;
   skipHoliday?: unknown;
 };
 
@@ -158,6 +173,12 @@ function readDay(f: Fields): { entry: Entry; repaired: boolean } | null {
     location: str(f.location).trim(),
     comment: str(f.comment, MAX_COMMENT),
   };
+  if (Array.isArray(f.trips)) {
+    const trips = f.trips.slice(0, MAX_TRIPS).map(readTrip);
+    if (trips.some((t) => t == null)) repaired = true;
+    const ok = trips.filter((t): t is Trip => t != null);
+    if (ok.length) entry.trips = ok;
+  } else if (f.trips != null) repaired = true;
   if (f.skipHoliday === true) entry.skipHoliday = true;
   return { entry, repaired };
 }
@@ -196,6 +217,14 @@ function collectDays(raws: { key?: string; value: unknown }[], html: boolean): D
     out.entries[day.entry.date] = day.entry;
   }
   return out;
+}
+
+function readTrip(v: unknown): Trip | null {
+  if (!isObject(v) || !isString(v.from) || !isString(v.to)) return null;
+  const from = v.from.trim().slice(0, MAX_TEXT);
+  const to = v.to.trim().slice(0, MAX_TEXT);
+  if (!from || !to) return null;
+  return inRange(v.miles, 0, MAX_MILES) ? { from, to, miles: v.miles } : { from, to };
 }
 
 // ---------- settings ----------
@@ -237,6 +266,73 @@ function readHoliday(v: unknown): HolidayRule | null {
     };
   }
   return null;
+}
+
+const id = (v: unknown, i: number) => (isString(v) && v ? v.slice(0, MAX_TEXT) : `item-${i}`);
+const pct = (v: unknown, fallback: number) => (inRange(v, 0, 100) ? v : fallback);
+const money = (v: unknown) => (inRange(v, 0, MAX_MONEY) ? v : null);
+
+function readFinance(v: unknown): Finance | null {
+  if (!isObject(v)) return null;
+  const schedules = ['weekly', 'biweekly', 'semimonthly', 'monthly'] as const;
+  const deductions: Deduction[] = Array.isArray(v.deductions)
+    ? v.deductions.slice(0, MAX_LIST).flatMap((d, i): Deduction[] => {
+        if (!isObject(d) || !isString(d.name)) return [];
+        const unit =
+          d.unit === 'percent' || d.unit === 'paycheck' || d.unit === 'month' ? d.unit : null;
+        const kind = d.kind === 'retirement' || d.kind === 'health' ? d.kind : 'other';
+        const amount =
+          unit === 'percent' ? (inRange(d.amount, 0, 100) ? d.amount : null) : money(d.amount);
+        if (!unit || amount == null) return [];
+        return [
+          {
+            id: id(d.id, i),
+            name: d.name.slice(0, MAX_TEXT),
+            kind,
+            amount,
+            unit,
+            pretax: d.pretax === true,
+          },
+        ];
+      })
+    : [];
+  const bills: Bill[] = Array.isArray(v.bills)
+    ? v.bills.slice(0, MAX_LIST).flatMap((b, i): Bill[] => {
+        if (!isObject(b) || !isString(b.name)) return [];
+        const per = b.per === 'week' || b.per === 'month' || b.per === 'year' ? b.per : null;
+        const amount = money(b.amount);
+        if (!per || amount == null) return [];
+        return [{ id: id(b.id, i), name: b.name.slice(0, MAX_TEXT), amount, per }];
+      })
+    : [];
+  return {
+    paySchedule: schedules.find((x) => x === v.paySchedule) ?? DEFAULT_FINANCE.paySchedule,
+    federalPct: pct(v.federalPct, 0),
+    statePct: pct(v.statePct, 0),
+    localPct: pct(v.localPct, 0),
+    ficaPct: pct(v.ficaPct, DEFAULT_FINANCE.ficaPct),
+    deductions,
+    bills,
+  };
+}
+
+function readDriving(v: unknown): Driving | null {
+  if (!isObject(v)) return null;
+  const orNull = (x: unknown, max: number) => (inRange(x, 0, max) ? x : null);
+  const routes: Route[] = Array.isArray(v.routes)
+    ? v.routes.slice(0, MAX_LIST * 4).flatMap((r): Route[] => {
+        const trip = readTrip(r);
+        return trip && trip.miles != null
+          ? [{ from: trip.from, to: trip.to, miles: trip.miles }]
+          : [];
+      })
+    : [];
+  return {
+    mpg: orNull(v.mpg, 200) || DEFAULT_DRIVING.mpg,
+    gasPrice: orNull(v.gasPrice, 100),
+    reimbursePerMile: orNull(v.reimbursePerMile, 10),
+    routes,
+  };
 }
 
 function readOvertime(v: unknown): OvertimeRule | null {
@@ -299,6 +395,8 @@ const SETTING_READERS: { [K in keyof Settings]: (v: unknown) => Settings[K] | nu
             radiusMeters: p.radiusMeters,
           }))
       : null,
+  finance: readFinance,
+  driving: readDriving,
 };
 
 function readClockedSettings(raw: unknown): { settings: Partial<Settings>; skipped: number } {

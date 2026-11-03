@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { CalendarIcon, ChartIcon, ListIcon, SlidersIcon } from '@/components/icons';
+import { CalendarIcon, ChartIcon, DollarIcon, ListIcon, SlidersIcon } from '@/components/icons';
 import { useGeofencing } from '@/geofence/useGeofencing';
 import { useClockOutReminder } from '@/notifications/useReminder';
 import { MIN_TAP, space, useTheme } from '@/theme';
@@ -51,6 +51,14 @@ export default function TabsLayout() {
           title: 'Charts',
           tabBarAccessibilityLabel: 'Charts of hours per day and week',
           tabBarIcon: ({ color }) => <ChartIcon color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="money"
+        options={{
+          title: 'Money',
+          tabBarAccessibilityLabel: 'Money: take-home pay, bills and miles',
+          tabBarIcon: ({ color }) => <DollarIcon color={color} />,
         }}
       />
       <Tabs.Screen

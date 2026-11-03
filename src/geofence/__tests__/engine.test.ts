@@ -146,8 +146,17 @@ describe('leaving and coming back', () => {
     expect(promptText(last.notify!).body).toBe(
       'Drive from Main office, 9:10 AM – 9:35 AM (25 min). Log the drive as time worked?',
     );
-    expect(answerPatch(last.notify!, 'worked', working)).toEqual({ travel: 'Yes' });
-    expect(answerPatch(last.notify!, 'break', working)).toEqual({ breakHours: 25 / 60 });
+    // Either way the drive is recorded as a trip, for miles and gas.
+    const trips = [{ from: 'Main office', to: 'Client site' }];
+    expect(answerPatch(last.notify!, 'worked', working)).toEqual({ travel: 'Yes', trips });
+    expect(answerPatch(last.notify!, 'break', working)).toEqual({ breakHours: 25 / 60, trips });
+    // Added to the day's other trips.
+    const earlier = of(
+      day(TODAY, { start: '08:00', trips: [{ from: 'Vendor', to: 'Main office', miles: 4 }] }),
+    );
+    expect(answerPatch(last.notify!, 'worked', earlier)).toMatchObject({
+      trips: [{ from: 'Vendor', to: 'Main office', miles: 4 }, ...trips],
+    });
   });
 
   it('if they clocked out when leaving, coming back offers to undo it', () => {

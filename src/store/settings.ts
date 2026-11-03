@@ -25,6 +25,68 @@ export const DEFAULT_OVERTIME: WeeklyOvertime = {
   multiplier: 1.5,
 };
 
+/** How often paychecks come, for deductions entered per paycheck. */
+export type PaySchedule = 'weekly' | 'biweekly' | 'semimonthly' | 'monthly';
+
+/**
+ * Something taken out of each paycheck (CLAUDE.md §3.12). Before-tax
+ * deductions lower income tax; before-tax health ones (health, dental,
+ * vision, HSA) also lower Social Security and Medicare, retirement ones don't.
+ */
+export type Deduction = {
+  id: string;
+  name: string;
+  kind: 'retirement' | 'health' | 'other';
+  amount: number;
+  unit: 'percent' | 'paycheck' | 'month';
+  pretax: boolean;
+};
+
+/** A household bill paid from take-home pay. */
+export type Bill = { id: string; name: string; amount: number; per: 'week' | 'month' | 'year' };
+
+/** Finance and bills (CLAUDE.md §3.12). Rates are percentages of pay. */
+export type Finance = {
+  paySchedule: PaySchedule;
+  federalPct: number;
+  statePct: number;
+  localPct: number;
+  /** Social Security + Medicare (7.65% for most employees). */
+  ficaPct: number;
+  deductions: Deduction[];
+  bills: Bill[];
+};
+
+export const DEFAULT_FINANCE: Finance = {
+  paySchedule: 'biweekly',
+  federalPct: 0,
+  statePct: 0,
+  localPct: 0,
+  ficaPct: 7.65,
+  deductions: [],
+  bills: [],
+};
+
+/** Miles between two places, either way round. */
+export type Route = { from: string; to: string; miles: number };
+
+/** Driving between places (CLAUDE.md §3.13). Null = not set. */
+export type Driving = {
+  mpg: number | null;
+  /** Dollars per gallon. */
+  gasPrice: number | null;
+  /** Dollars per mile, e.g. an employer's or the IRS business rate. */
+  reimbursePerMile: number | null;
+  routes: Route[];
+};
+
+export const DEFAULT_DRIVING: Driving = {
+  mpg: null,
+  gasPrice: null,
+  reimbursePerMile: null,
+  routes: [],
+};
+
 /**
  * Preferences kept on this device (CLAUDE.md §3.6). Included in backup and
  * restore. Everything about the person starts blank: the app ships with no
@@ -63,6 +125,8 @@ export type Settings = {
   geofencing: boolean;
   /** Circles on the map for places in the Locations list. */
   places: GeoPlace[];
+  finance: Finance;
+  driving: Driving;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -83,6 +147,8 @@ export const DEFAULT_SETTINGS: Settings = {
   autoHolidays: true,
   geofencing: false,
   places: [],
+  finance: DEFAULT_FINANCE,
+  driving: DEFAULT_DRIVING,
 };
 
 type SettingsState = Settings & {

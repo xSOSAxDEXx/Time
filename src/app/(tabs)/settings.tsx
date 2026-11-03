@@ -4,6 +4,8 @@ import { Platform, Pressable, StyleSheet, View, type ScrollViewInstance } from '
 
 import { AppText } from '@/components/AppText';
 import { BackupSection } from '@/components/BackupSection';
+import { DrivingSection } from '@/components/DrivingSection';
+import { FinanceSection } from '@/components/FinanceSection';
 import { Button } from '@/components/Button';
 import { ChoiceChips } from '@/components/ChoiceChips';
 import { GeoSection } from '@/components/GeoSection';
@@ -43,6 +45,8 @@ const JUMPS: [string, string][] = [
   ['Arrive & leave', 'Arrive and leave'],
   ['Holidays', 'Company holidays'],
   ['Pay', 'Pay'],
+  ['Finance', 'Finance and bills'],
+  ['Driving', 'Driving'],
   ['Lists', 'Lists'],
   ['Theme', 'Look'],
   ['Backup', 'Backup and export'],
@@ -246,6 +250,9 @@ export default function SettingsScreen() {
             );
           })}
         </Section>
+
+        <FinanceSection />
+        <DrivingSection />
 
         <Section title="Lists">
           <Labeled label="Locations">

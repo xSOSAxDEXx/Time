@@ -7,6 +7,12 @@ export type ClockTime = string;
 export type Travel = '' | 'Yes' | 'No';
 
 /**
+ * A drive between two places from the Locations list (CLAUDE.md §3.13).
+ * Miles come from the route in Settings unless set for this trip.
+ */
+export type Trip = { from: string; to: string; miles?: number };
+
+/**
  * One day on the time card (CLAUDE.md §3.1). Mirrors a row of the owner's
  * spreadsheet. Durations are stored in hours, like the spreadsheet; the UI
  * shows the break in minutes.
@@ -22,6 +28,8 @@ export type Entry = {
   travel: Travel;
   location: string;
   comment: string;
+  /** Drives between places this day. */
+  trips?: Trip[];
   /** Don't count the company holiday on this date (it's a holiday, but not for you this time). */
   skipHoliday?: boolean;
   /** Set on days filled in automatically from the holiday list (never saved). */
@@ -57,6 +65,7 @@ export function isEmptyEntry(e: Entry): boolean {
     !e.travel &&
     !e.location &&
     !e.comment.trim() &&
+    !e.trips?.length &&
     !e.skipHoliday
   );
 }

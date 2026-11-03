@@ -2,7 +2,7 @@ import { useTheme } from '@/theme';
 
 import type { SelectFieldProps } from './SelectField';
 
-export function SelectField({ options, value, onChange, label }: SelectFieldProps) {
+export function SelectField({ options, value, onChange, label, compact }: SelectFieldProps) {
   const { colors } = useTheme();
   const all = value && !options.includes(value) ? [...options, value] : options;
   return (
@@ -17,9 +17,9 @@ export function SelectField({ options, value, onChange, label }: SelectFieldProp
         background: colors.surface,
         border: `1px solid ${colors.border}`,
         borderRadius: 8,
-        minHeight: 40,
+        minHeight: compact ? 40 : 48,
         width: '100%',
-        maxWidth: 140,
+        maxWidth: compact ? 140 : 320,
         padding: '0 4px',
         colorScheme: 'light dark',
       }}>

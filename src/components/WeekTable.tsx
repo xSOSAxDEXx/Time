@@ -246,6 +246,7 @@ export function WeekTable({
             </View>
             <View style={col(8)}>
               <SelectField
+                compact
                 label={label('time off type')}
                 options={timeOffTypes}
                 value={e.timeOffType}
@@ -254,6 +255,7 @@ export function WeekTable({
             </View>
             <View style={col(9)}>
               <SelectField
+                compact
                 label={label('travel')}
                 options={['Yes', 'No']}
                 value={e.travel}
@@ -262,6 +264,7 @@ export function WeekTable({
             </View>
             <View style={col(10)}>
               <SelectField
+                compact
                 label={label('location')}
                 options={locations}
                 value={e.location}

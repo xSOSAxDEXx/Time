@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 2 Nov 2026 (step 9 under way)._
+_Last updated: 3 Nov 2026 (finance, bills and driving)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -116,6 +116,27 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
   screen readers.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
+
+## Finance, bills and driving (3 Nov 2026, owner request)
+
+Owner's choices: taxes as percentages; three levels (gross → take-home →
+left over after bills); miles entered once per route; miles, gas and
+reimbursement. See CLAUDE.md §3.12–3.13.
+
+- New Money tab (5th tab), Settings → Finance and bills, Settings →
+  Driving, and Drives in the day editor.
+- Arrive and leave records a drive when its question is answered "Count as
+  worked" or "Log as break".
+- Decisions made along the way (change any if they're wrong):
+  - Social Security + Medicare starts at 7.65%; the Social Security wage
+    cap isn't applied.
+  - Fixed deductions and bills are spread evenly by month; the current and
+    first month count only their share of days.
+  - Gas comes off "left over"; reimbursement is shown but not added to pay.
+  - Money headline numbers are whole dollars; the per-month breakdown keeps
+    cents.
+  - The CSV export is unchanged (the time card page's columns). A separate
+    mileage log export could be added if wanted.
 
 ## UI clean-up (2 Nov 2026)
 
