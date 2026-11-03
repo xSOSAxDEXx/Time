@@ -13,8 +13,8 @@ type Props = {
   itemName: string;
 };
 
-/** Edit a short list of names: remove with ✕, add by typing. Duplicates are ignored. */
-export function ListEditor({ items, onChange, itemName }: Props) {
+/** A box and an Add button for one more name. Duplicates (any case) are ignored. */
+export function AddItem({ items, onChange, itemName }: Props) {
   const { colors } = useTheme();
   const [text, setText] = useState('');
   const add = () => {
@@ -24,6 +24,30 @@ export function ListEditor({ items, onChange, itemName }: Props) {
     }
     setText('');
   };
+  return (
+    <View style={styles.addRow}>
+      <TextInput
+        value={text}
+        onChangeText={setText}
+        onSubmitEditing={add}
+        returnKeyType="done"
+        accessibilityLabel={`New ${itemName}`}
+        placeholder={`Add a ${itemName}`}
+        placeholderTextColor={colors.textMuted}
+        style={[
+          type.body,
+          styles.input,
+          { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
+        ]}
+      />
+      <Button label="Add" onPress={add} accessibilityLabel={`Add ${itemName}`} />
+    </View>
+  );
+}
+
+/** Edit a short list of names: tap one to remove it, add by typing. */
+export function ListEditor({ items, onChange, itemName }: Props) {
+  const { colors } = useTheme();
   return (
     <View style={styles.wrap}>
       <View style={styles.chips}>
@@ -45,23 +69,12 @@ export function ListEditor({ items, onChange, itemName }: Props) {
           </Pressable>
         ))}
       </View>
-      <View style={styles.addRow}>
-        <TextInput
-          value={text}
-          onChangeText={setText}
-          onSubmitEditing={add}
-          returnKeyType="done"
-          accessibilityLabel={`New ${itemName}`}
-          placeholder={`Add a ${itemName}`}
-          placeholderTextColor={colors.textMuted}
-          style={[
-            type.body,
-            styles.input,
-            { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
-          ]}
-        />
-        <Button label="Add" onPress={add} accessibilityLabel={`Add ${itemName}`} />
-      </View>
+      {items.length ? (
+        <AppText variant="caption" tone="muted">
+          Tap a name to remove it. Days already logged keep their {itemName}.
+        </AppText>
+      ) : null}
+      <AddItem items={items} onChange={onChange} itemName={itemName} />
     </View>
   );
 }

@@ -173,6 +173,27 @@ describe('arrive and leave: Settings', () => {
     expect(useSettings.getState().places).toEqual([]);
   });
 
+  it('adds a new place and deletes one, from the places list', async () => {
+    useSettings.getState().update({
+      geofencing: true,
+      locations: ['Main office', 'Vendor'],
+      places: [{ location: 'Vendor', latitude: 40.1, longitude: -75.2, radiusMeters: 150 }],
+    });
+    await renderRouter(routes, { initialUrl: '/settings' });
+    await screen.findByRole('header', { name: 'Arrive and leave' });
+    await act(async () => fireEvent.changeText(screen.getByLabelText('New place'), 'Warehouse'));
+    await press('Add place');
+    expect(useSettings.getState().locations).toEqual(['Main office', 'Vendor', 'Warehouse']);
+    expect(
+      screen.getByRole('button', { name: 'Set Warehouse to where I am now' }),
+    ).toBeOnTheScreen();
+
+    await press('Delete Vendor');
+    await press('Yes, delete Vendor');
+    expect(useSettings.getState().locations).toEqual(['Main office', 'Warehouse']);
+    expect(useSettings.getState().places).toEqual([]);
+  });
+
   it('says what to do with "while using" location access only', async () => {
     location.__state.askAnswer = 'whileUsing';
     await renderRouter(routes, { initialUrl: '/settings' });

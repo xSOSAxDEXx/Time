@@ -20,6 +20,7 @@ import { radius as radii, space, useTheme } from '@/theme';
 import { AppText } from './AppText';
 import { Button } from './Button';
 import { ChoiceChips } from './ChoiceChips';
+import { AddItem } from './ListEditor';
 import { PlaceOutline } from './PlaceOutline';
 import { Section } from './Section';
 import { SwitchRow } from './SwitchRow';
@@ -39,6 +40,7 @@ export function GeoSection() {
   const [error, setError] = useState<string | null>(null);
   // Outline editors opened or closed by hand (otherwise open when there's an outline).
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [whereAmI, setWhereAmI] = useState<string[] | null>(null);
   const inside = useGeo((s) => s.inside);
 
@@ -147,6 +149,14 @@ export function GeoSection() {
 
   const setRadius = (location: string, radiusMeters: number) =>
     update({ places: places.map((p) => (p.location === location ? { ...p, radiusMeters } : p)) });
+  /** Takes a place off the Locations list, and its circle with it. */
+  const deletePlace = (location: string) => {
+    update({
+      locations: locations.filter((l) => l !== location),
+      places: places.filter((p) => p.location !== location),
+    });
+    setDeleting(null);
+  };
   const remove = (location: string) =>
     update({ places: places.filter((p) => p.location !== location) });
 
@@ -181,7 +191,8 @@ export function GeoSection() {
           </AppText>
           <AppText variant="caption" tone="muted">
             Stand at each place and tap “Set to where I am now”. For a big site, tap “Outline” and
-            add its corners from Google Maps instead. Places come from Settings → Lists → Locations.
+            add its corners from Google Maps instead. Add a new place at the bottom; it&apos;s added
+            to your Locations list too.
           </AppText>
           {locations.map((location) => {
             const place = places.find((p) => p.location === location);
@@ -228,12 +239,34 @@ export function GeoSection() {
                   {place ? (
                     <Button
                       variant="quiet"
-                      label="Remove"
-                      accessibilityLabel={`Remove ${location}'s circle`}
+                      label="Clear"
+                      accessibilityLabel={`Clear ${location}'s circle`}
                       onPress={() => remove(location)}
                     />
                   ) : null}
+                  <Button
+                    variant="quiet"
+                    label="Delete place"
+                    accessibilityLabel={`Delete ${location}`}
+                    onPress={() => setDeleting(location)}
+                  />
                 </View>
+                {deleting === location ? (
+                  <View style={styles.block}>
+                    <AppText>
+                      Delete {location} from your places and Locations list? Days already logged
+                      keep it.
+                    </AppText>
+                    <View style={styles.row}>
+                      <Button
+                        label="Delete"
+                        accessibilityLabel={`Yes, delete ${location}`}
+                        onPress={() => deletePlace(location)}
+                      />
+                      <Button variant="quiet" label="Keep" onPress={() => setDeleting(null)} />
+                    </View>
+                  </View>
+                ) : null}
                 {outlineOpen ? (
                   <PlaceOutline
                     location={location}
@@ -254,6 +287,11 @@ export function GeoSection() {
               </View>
             );
           })}
+          <AddItem
+            itemName="place"
+            items={locations}
+            onChange={(next) => update({ locations: next })}
+          />
           <Button
             label={busy === 'where' ? 'Finding you…' : 'Check where I am'}
             disabled={busy != null}

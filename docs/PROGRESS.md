@@ -117,6 +117,16 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
 
+## Managing places (3 Nov 2026, owner request)
+
+- The owner couldn't find how to add or remove locations (Settings → Lists
+  only removes by tapping a name, with no hint). Arrive and leave → Your
+  places now has **Add a place** at the bottom and **Delete place** (with
+  a confirm) on each card; both change the Locations list too. Lists now
+  says "Tap a name to remove it".
+- The owner's own place names stay on their phone; the app's starting list
+  is unchanged.
+
 ## Dollar taxes and place outlines (3 Nov 2026, owner request)
 
 - Each tax can be % of pay, $ per paycheck or $ per month, like the
