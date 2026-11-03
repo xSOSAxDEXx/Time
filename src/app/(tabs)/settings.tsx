@@ -6,6 +6,7 @@ import { AppText } from '@/components/AppText';
 import { BackupSection } from '@/components/BackupSection';
 import { DrivingSection } from '@/components/DrivingSection';
 import { FinanceSection } from '@/components/FinanceSection';
+import { PartnerSection } from '@/components/PartnerSection';
 import { Button } from '@/components/Button';
 import { ChoiceChips } from '@/components/ChoiceChips';
 import { GeoSection } from '@/components/GeoSection';
@@ -252,6 +253,7 @@ export default function SettingsScreen() {
         </Section>
 
         <FinanceSection />
+        <PartnerSection />
         <DrivingSection />
 
         <Section title="Lists">

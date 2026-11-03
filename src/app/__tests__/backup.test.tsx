@@ -56,7 +56,7 @@ describe('backup and export', () => {
     await open();
     await press('Back up');
     const file = lastShared();
-    expect(file.uri).toBe('file:///cache/clocked-backup-2030-01-09.json');
+    expect(file.uri).toBe('file:///cache/punchd-backup-2030-01-09.json');
     expect(file.mimeType).toBe('application/json');
     const backup = JSON.parse(file.text);
     expect(backup.entries).toEqual([day('2030-01-07', { start: '08:00', end: '16:00' })]);
@@ -68,7 +68,7 @@ describe('backup and export', () => {
     await open();
     await press('Export spreadsheet (CSV)');
     const file = lastShared();
-    expect(file.uri).toBe('file:///cache/clocked-2030-01-09.csv');
+    expect(file.uri).toBe('file:///cache/punchd-2030-01-09.csv');
     expect(file.text.split('\r\n')[1]).toBe(
       'Monday,2030-01-07,8:00 AM,4:00 PM,4:00 PM,,,,8.00,,,,',
     );
@@ -129,7 +129,7 @@ describe('backup and export', () => {
     await open();
     fs.__setNextPick('{"some":"other file"}');
     await press('Restore');
-    expect(screen.getByText(/doesn't look like a Clocked backup/)).toBeOnTheScreen();
+    expect(screen.getByText(/doesn't look like a Punch'd backup/)).toBeOnTheScreen();
     await press('Restore');
     expect(screen.queryByText(/doesn't look like/)).toBeNull();
     expect(screen.queryByText(/Replace what/)).toBeNull();

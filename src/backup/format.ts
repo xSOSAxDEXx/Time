@@ -16,12 +16,14 @@ import { MAX_CORNERS, type LatLng } from '@/geofence/outline';
 import {
   DEFAULT_DRIVING,
   DEFAULT_FINANCE,
+  DEFAULT_PARTNER,
   DEFAULT_SETTINGS,
   type Bill,
   type AmountUnit,
   type Deduction,
   type Driving,
   type Finance,
+  type Partner,
   type TaxKey,
   type OvertimeRule,
   type Route,
@@ -55,9 +57,9 @@ export function buildBackup(settings: Settings, entries: Entries, now = new Date
   };
 }
 
-/** e.g. "clocked-backup-2026-11-02.json" (the local date). */
+/** e.g. "punchd-backup-2026-11-02.json" (the local date). */
 export function backupFileName(now = new Date()): string {
-  return `clocked-backup-${toKey(now)}.json`;
+  return `punchd-backup-${toKey(now)}.json`;
 }
 
 /** Where a file came from. */
@@ -65,11 +67,11 @@ export type BackupSource = 'clocked' | 'html-data' | 'html-backup';
 
 export type ParsedBackup = {
   source: BackupSource;
-  /** When a Clocked backup was made (ISO), if the file says. */
+  /** When a Punch'd backup was made (ISO), if the file says. */
   exportedAt?: string;
   entries: Entries;
   /**
-   * The settings the file holds. A Clocked backup replaces every setting
+   * The settings the file holds. A Punch'd backup replaces every setting
    * (missing ones go back to their defaults); the HTML page only had some,
    * and the rest are left as they are.
    */
@@ -88,7 +90,7 @@ export type ParseResult = ({ ok: true } & ParsedBackup) | { ok: false; message: 
 export const MAX_FILE_CHARS = 20_000_000;
 
 const NOT_A_BACKUP =
-  "This doesn't look like a Clocked backup or a time card file. Choose a file that starts with “clocked-backup”, or the time card page's data or backup file.";
+  "This doesn't look like a Punch'd backup or a time card file. Choose a file that starts with “punchd-backup” (or “clocked-backup” from before the new name), or the time card page's data or backup file.";
 
 const MAX_TEXT = 200;
 const MAX_COMMENT = 5000;
@@ -275,9 +277,22 @@ const id = (v: unknown, i: number) => (isString(v) && v ? v.slice(0, MAX_TEXT) :
 const pct = (v: unknown, fallback: number) => (inRange(v, 0, 100) ? v : fallback);
 const money = (v: unknown) => (inRange(v, 0, MAX_MONEY) ? v : null);
 
+function readBills(v: unknown): Bill[] {
+  return Array.isArray(v)
+    ? v.slice(0, MAX_LIST).flatMap((b, i): Bill[] => {
+        if (!isObject(b) || !isString(b.name)) return [];
+        const per = b.per === 'week' || b.per === 'month' || b.per === 'year' ? b.per : null;
+        const amount = money(b.amount);
+        if (!per || amount == null) return [];
+        return [{ id: id(b.id, i), name: b.name.slice(0, MAX_TEXT), amount, per }];
+      })
+    : [];
+}
+
+const SCHEDULES = ['weekly', 'biweekly', 'semimonthly', 'monthly'] as const;
+
 function readFinance(v: unknown): Finance | null {
   if (!isObject(v)) return null;
-  const schedules = ['weekly', 'biweekly', 'semimonthly', 'monthly'] as const;
   const deductions: Deduction[] = Array.isArray(v.deductions)
     ? v.deductions.slice(0, MAX_LIST).flatMap((d, i): Deduction[] => {
         if (!isObject(d) || !isString(d.name)) return [];
@@ -299,15 +314,7 @@ function readFinance(v: unknown): Finance | null {
         ];
       })
     : [];
-  const bills: Bill[] = Array.isArray(v.bills)
-    ? v.bills.slice(0, MAX_LIST).flatMap((b, i): Bill[] => {
-        if (!isObject(b) || !isString(b.name)) return [];
-        const per = b.per === 'week' || b.per === 'month' || b.per === 'year' ? b.per : null;
-        const amount = money(b.amount);
-        if (!per || amount == null) return [];
-        return [{ id: id(b.id, i), name: b.name.slice(0, MAX_TEXT), amount, per }];
-      })
-    : [];
+  const bills = readBills(v.bills);
   const rawUnits = isObject(v.taxUnits) ? v.taxUnits : {};
   const taxUnits: Partial<Record<TaxKey, AmountUnit>> = {};
   for (const key of ['federal', 'state', 'local', 'fica'] as const) {
@@ -318,7 +325,7 @@ function readFinance(v: unknown): Finance | null {
   const tax = (key: TaxKey, x: unknown, fallback: number) =>
     taxUnits[key] ? (money(x) ?? 0) : pct(x, fallback);
   return {
-    paySchedule: schedules.find((x) => x === v.paySchedule) ?? DEFAULT_FINANCE.paySchedule,
+    paySchedule: SCHEDULES.find((x) => x === v.paySchedule) ?? DEFAULT_FINANCE.paySchedule,
     federalPct: tax('federal', v.federalPct, 0),
     statePct: tax('state', v.statePct, 0),
     localPct: tax('local', v.localPct, 0),
@@ -344,7 +351,21 @@ function readDriving(v: unknown): Driving | null {
     mpg: orNull(v.mpg, 200) || DEFAULT_DRIVING.mpg,
     gasPrice: orNull(v.gasPrice, 100),
     reimbursePerMile: orNull(v.reimbursePerMile, 10),
+    ...(inRange(v.commuteMiles, 0, MAX_MILES) && v.commuteMiles > 0
+      ? { commuteMiles: v.commuteMiles }
+      : {}),
     routes,
+  };
+}
+
+function readPartner(v: unknown): Partner | null {
+  if (!isObject(v)) return null;
+  return {
+    enabled: v.enabled === true,
+    name: isString(v.name) ? v.name.trim().slice(0, MAX_TEXT) : '',
+    takeHome: money(v.takeHome) ?? 0,
+    paySchedule: SCHEDULES.find((x) => x === v.paySchedule) ?? DEFAULT_PARTNER.paySchedule,
+    bills: readBills(v.bills),
   };
 }
 
@@ -424,6 +445,7 @@ const SETTING_READERS: { [K in keyof Settings]: (v: unknown) => Settings[K] | nu
       : null,
   finance: readFinance,
   driving: readDriving,
+  partner: readPartner,
 };
 
 function readClockedSettings(raw: unknown): { settings: Partial<Settings>; skipped: number } {
@@ -457,7 +479,7 @@ function readHtmlSettings(raw: unknown): { settings: Partial<Settings>; skipped:
 
 // ---------- the whole file ----------
 
-/** Reads a backup file's text: a Clocked backup, or the time card page's data or backup file. */
+/** Reads a backup file's text: a Punch'd backup, or the time card page's data or backup file. */
 export function parseBackup(text: string): ParseResult {
   if (text.length > MAX_FILE_CHARS) return { ok: false, message: NOT_A_BACKUP };
   let data: unknown;
@@ -473,7 +495,7 @@ export function parseBackup(text: string): ParseResult {
       return {
         ok: false,
         message:
-          'This backup was made by a newer version of Clocked. Update the app, then try again.',
+          "This backup was made by a newer version of Punch'd. Update the app, then try again.",
       };
     }
     if (!Array.isArray(data.entries)) return { ok: false, message: NOT_A_BACKUP };

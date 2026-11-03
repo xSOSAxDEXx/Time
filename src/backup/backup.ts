@@ -23,7 +23,7 @@ export async function exportBackup(now = new Date()): Promise<Outcome> {
     backupFileName(now),
     JSON.stringify(backup, null, 1),
     'application/json',
-    'Save your Clocked backup',
+    "Save your Punch'd backup",
   );
   if (result === 'unavailable') return CANT_SHARE;
   return {
@@ -73,7 +73,7 @@ export async function chooseRestoreFile(): Promise<RestoreChoice | null> {
 }
 
 const SOURCE_NAMES = {
-  clocked: 'Clocked backup',
+  clocked: "Punch'd backup",
   'html-data': 'Time card page data file',
   'html-backup': 'Time card page backup',
 } as const;

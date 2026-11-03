@@ -18,7 +18,7 @@ const routes = {
 describe('tab navigation', () => {
   it('opens on the week screen with all four tabs available', async () => {
     await renderRouter(routes, { initialUrl: '/' });
-    expect(await screen.findByRole('header', { name: 'Clocked' })).toBeOnTheScreen();
+    expect(await screen.findByRole('header', { name: "Punch'd" })).toBeOnTheScreen();
     expect(screen.getByLabelText('Week, log your time')).toBeOnTheScreen();
     expect(screen.getByLabelText('Summary and all weeks')).toBeOnTheScreen();
     expect(screen.getByLabelText('Charts of hours per day and week')).toBeOnTheScreen();

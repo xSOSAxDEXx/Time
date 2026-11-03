@@ -4,17 +4,15 @@ import {
   DEFAULT_FINANCE,
   useSettings,
   type AmountUnit,
-  type Bill,
   type Deduction,
   type Finance,
   type PaySchedule,
   type TaxKey,
 } from '@/store/settings';
-import { formatMoney } from '@/timecard/pay';
-import { perMonth } from '@/timecard/money';
 import { radius, space, useTheme } from '@/theme';
 
 import { AppText } from './AppText';
+import { BillsEditor, newId } from './BillsEditor';
 import { Button } from './Button';
 import { ChoiceChips } from './ChoiceChips';
 import { NumberField } from './NumberField';
@@ -22,7 +20,7 @@ import { Labeled, Section } from './Section';
 import { SwitchRow } from './SwitchRow';
 import { TextField } from './TextField';
 
-const SCHEDULES: [PaySchedule, string][] = [
+export const SCHEDULES: [PaySchedule, string][] = [
   ['weekly', 'Weekly'],
   ['biweekly', 'Every 2 weeks'],
   ['semimonthly', 'Twice a month'],
@@ -42,12 +40,6 @@ const TAXES = [
   ['fica', 'ficaPct', 'Social Security + Medicare'],
 ] as const satisfies readonly [TaxKey, keyof Finance, string][];
 
-const PERS: [Bill['per'], string][] = [
-  ['week', 'Weekly'],
-  ['month', 'Monthly'],
-  ['year', 'Yearly'],
-];
-
 /** One-tap starting points for the common paycheck deductions. */
 const DEDUCTION_PRESETS: Omit<Deduction, 'id' | 'amount'>[] = [
   { name: '401(k)', kind: 'retirement', unit: 'percent', pretax: true },
@@ -58,18 +50,6 @@ const DEDUCTION_PRESETS: Omit<Deduction, 'id' | 'amount'>[] = [
   { name: 'HSA', kind: 'health', unit: 'paycheck', pretax: true },
   { name: 'Other deduction', kind: 'other', unit: 'paycheck', pretax: false },
 ];
-
-const BILL_PRESETS = [
-  'Rent / mortgage',
-  'Car payment',
-  'Car insurance',
-  'Phone',
-  'Internet',
-  'Utilities',
-  'Other bill',
-];
-
-const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
 /**
  * Settings → Finance and bills (CLAUDE.md §3.12): tax rates, paycheck
@@ -82,13 +62,7 @@ export function FinanceSection() {
     useSettings.getState().update({ finance: { ...useSettings.getState().finance, ...patch } });
   const setDeduction = (id: string, patch: Partial<Deduction>) =>
     set({ deductions: finance.deductions.map((d) => (d.id === id ? { ...d, ...patch } : d)) });
-  const setBill = (id: string, patch: Partial<Bill>) =>
-    set({ bills: finance.bills.map((b) => (b.id === id ? { ...b, ...patch } : b)) });
   const card = [styles.item, { borderColor: colors.border, backgroundColor: colors.surfaceSoft }];
-  const monthlyBills = finance.bills.reduce(
-    (sum, b) => sum + perMonth(b.amount, b.per, 'monthly'),
-    0,
-  );
 
   return (
     <Section title="Finance and bills">
@@ -223,63 +197,11 @@ export function FinanceSection() {
       </View>
 
       <AppText variant="label">Bills</AppText>
-      {finance.bills.length === 0 ? (
-        <AppText variant="caption" tone="muted">
-          None yet. Add what you pay every month from your take-home pay.
-        </AppText>
-      ) : null}
-      {finance.bills.map((b) => (
-        <View key={b.id} style={card}>
-          <View style={styles.row}>
-            <View style={styles.grow}>
-              <TextField
-                label="Bill name"
-                value={b.name}
-                onChange={(name) => setBill(b.id, { name: name || b.name })}
-              />
-            </View>
-            <View style={styles.amount}>
-              <NumberField
-                label={`${b.name} amount`}
-                unit="dollars"
-                max={1_000_000}
-                value={b.amount}
-                onChange={(amount) => setBill(b.id, { amount })}
-              />
-            </View>
-          </View>
-          <ChoiceChips
-            label={`${b.name}: how often`}
-            clearable={false}
-            options={PERS.map(([, l]) => l)}
-            value={PERS.find(([k]) => k === b.per)?.[1] ?? 'Monthly'}
-            onChange={(l) => setBill(b.id, { per: PERS.find(([, x]) => x === l)?.[0] ?? b.per })}
-          />
-          <Button
-            variant="quiet"
-            label="Remove"
-            accessibilityLabel={`Remove ${b.name}`}
-            onPress={() => set({ bills: finance.bills.filter((x) => x.id !== b.id) })}
-          />
-        </View>
-      ))}
-      <View style={styles.wrap}>
-        {BILL_PRESETS.map((name) => (
-          <Button
-            key={name}
-            label={`+ ${name}`}
-            accessibilityLabel={`Add ${name}`}
-            onPress={() =>
-              set({ bills: [...finance.bills, { id: newId(), name, amount: 0, per: 'month' }] })
-            }
-          />
-        ))}
-      </View>
-      {finance.bills.length ? (
-        <AppText variant="caption" tone="muted">
-          Bills come to {formatMoney(monthlyBills)} a month.
-        </AppText>
-      ) : null}
+      <BillsEditor
+        bills={finance.bills}
+        onChange={(bills) => set({ bills })}
+        emptyNote="None yet. Add what you pay every month from your take-home pay."
+      />
     </Section>
   );
 }

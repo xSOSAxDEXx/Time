@@ -73,7 +73,7 @@ export function buildCsv(entries: Entries, today: DateKey, requiredHours: number
   return '\ufeff' + lines.join('\r\n') + '\r\n';
 }
 
-/** e.g. "clocked-2026-11-02.csv" (the local date). */
+/** e.g. "punchd-2026-11-02.csv" (the local date). */
 export function csvFileName(now = new Date()): string {
-  return `clocked-${toKey(now)}.csv`;
+  return `punchd-${toKey(now)}.csv`;
 }

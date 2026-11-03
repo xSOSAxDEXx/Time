@@ -12,7 +12,7 @@ import { reminderPlan, type ReminderPlan } from './plan';
 import { getPermission, setUpReminders, syncReminder, type Permission } from './scheduler';
 
 type ReminderState = {
-  /** Whether Clocked may notify; null until checked. */
+  /** Whether Punch'd may notify; null until checked. */
   permission: Permission | null;
   setPermission: (p: Permission) => void;
   /** The web banner the person closed (by plan key), so it stays closed. */

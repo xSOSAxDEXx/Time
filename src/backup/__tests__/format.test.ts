@@ -12,7 +12,7 @@ function parsed(text: string) {
   return r;
 }
 
-describe('Clocked backups', () => {
+describe("Punch'd backups", () => {
   it('round-trips every day and setting', () => {
     const entries = {
       '2030-01-08': day('2030-01-08', {
@@ -76,7 +76,15 @@ describe('Clocked backups', () => {
         mpg: 28,
         gasPrice: 3.1,
         reimbursePerMile: 0.5,
+        commuteMiles: 24,
         routes: [{ from: 'Main office', to: 'Client site', miles: 20 }],
+      },
+      partner: {
+        enabled: true,
+        name: 'Sam',
+        takeHome: 1250,
+        paySchedule: 'semimonthly' as const,
+        bills: [{ id: 'p1', name: 'Gym', amount: 40, per: 'month' as const }],
       },
     };
     const backup = buildBackup(settings, entries, new Date(2030, 0, 9, 12));
@@ -113,8 +121,18 @@ describe('Clocked backups', () => {
           ],
           bills: [{ name: 'Rent', amount: 'lots', per: 'month' }],
         },
+        partner: {
+          enabled: 'yes',
+          takeHome: -5,
+          paySchedule: 'daily',
+          bills: [
+            { name: 'Gym', amount: 40, per: 'day' },
+            { name: 'Car', amount: 300, per: 'month' },
+          ],
+        },
         driving: {
           mpg: -1,
+          commuteMiles: -10,
           routes: [
             { from: 'A', to: 'B' },
             { from: 'A', to: 'C', miles: 9 },
@@ -136,6 +154,13 @@ describe('Clocked backups', () => {
       deductions: [{ name: 'Health', kind: 'health', unit: 'paycheck', amount: 80, pretax: true }],
       bills: [],
     });
+    expect(r.settings.partner).toEqual({
+      enabled: false,
+      name: '',
+      takeHome: 0,
+      paySchedule: 'biweekly',
+      bills: [{ id: 'item-1', name: 'Car', amount: 300, per: 'month' }],
+    });
     expect(r.settings.driving).toEqual({
       mpg: null,
       gasPrice: null,
@@ -145,7 +170,7 @@ describe('Clocked backups', () => {
   });
 
   it('names the file by the local date', () => {
-    expect(backupFileName(new Date(2030, 0, 9, 23, 30))).toBe('clocked-backup-2030-01-09.json');
+    expect(backupFileName(new Date(2030, 0, 9, 23, 30))).toBe('punchd-backup-2030-01-09.json');
   });
 
   it('skips unreadable days, blanks unreadable fields and drops unreadable settings', () => {

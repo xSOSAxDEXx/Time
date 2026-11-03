@@ -81,6 +81,40 @@ describe('Money tab', () => {
     ).toBeOnTheScreen();
   });
 
+  it('adds a partner and the daily commute', async () => {
+    const s = useSettings.getState();
+    s.update({
+      driving: { ...s.driving, commuteMiles: 14 },
+      partner: {
+        enabled: true,
+        name: 'Sam',
+        takeHome: 1240,
+        paySchedule: 'monthly',
+        bills: [{ id: 'g', name: 'Gym', amount: 310, per: 'month' }],
+      },
+    });
+    await renderRouter(routes, { initialUrl: '/money' });
+    // Jan 7–11 is 5 of 31 days: $200 of Sam's take-home, $50 of their bills.
+    expect(screen.getAllByLabelText("Sam's take-home: $200: Their bills $50")).toHaveLength(2);
+    // Commute: 5 days × 14 mi × 5/7 = 50 mi, plus the 20 mi drive; gas $8.96.
+    expect(
+      screen.getByLabelText('Miles this month: 70 mi: 1 drive · commute 50 mi'),
+    ).toBeOnTheScreen();
+    // 527.04 + 200 − 161.29 − 50 − 8.96.
+    expect(screen.getAllByLabelText('Left over with Sam: $507: Bills $211 · gas $9')).toHaveLength(
+      2,
+    );
+
+    // Turned off: just yours again.
+    await act(async () =>
+      useSettings
+        .getState()
+        .update({ partner: { ...useSettings.getState().partner, enabled: false } }),
+    );
+    expect(screen.queryByLabelText(/Sam's take-home/)).toBeNull();
+    expect(screen.getAllByLabelText('Left over: $357: Bills $161 · gas $9')).toHaveLength(2);
+  });
+
   it('asks for an hourly rate first', async () => {
     useSettings.getState().update({ hourlyRate: null });
     await renderRouter(routes, { initialUrl: '/money' });
@@ -103,6 +137,33 @@ describe('Settings: finance and driving', () => {
     expect(useSettings.getState().finance.bills).toMatchObject([
       { name: 'Phone', per: 'month', amount: 0 },
     ]);
+  });
+});
+
+describe('Settings: spouse or partner', () => {
+  it('turns on, names them, and adds their pay and a bill', async () => {
+    await renderRouter(routes, { initialUrl: '/settings' });
+    await act(async () =>
+      fireEvent(screen.getByRole('switch', { name: 'Include in Money' }), 'valueChange', true),
+    );
+    const name = screen.getByLabelText("Spouse or partner's name");
+    await act(async () => fireEvent.changeText(name, 'Sam'));
+    await act(async () => fireEvent(name, 'blur'));
+    const pay = screen.getByLabelText("Sam's take-home pay per paycheck, in dollars");
+    await act(async () => fireEvent.changeText(pay, '1500'));
+    await act(async () => fireEvent(pay, 'blur'));
+    await act(async () =>
+      fireEvent.press(screen.getByRole('button', { name: "Add Phone (Sam's)" })),
+    );
+    expect(useSettings.getState().partner).toMatchObject({
+      enabled: true,
+      name: 'Sam',
+      takeHome: 1500,
+      paySchedule: 'biweekly',
+      bills: [{ name: 'Phone', amount: 0, per: 'month' }],
+    });
+    // Your own bills are separate.
+    expect(useSettings.getState().finance.bills).toHaveLength(1);
   });
 });
 

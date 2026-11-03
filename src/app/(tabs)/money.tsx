@@ -6,6 +6,7 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { ColumnChart, type ChartBar } from '@/components/ColumnChart';
 import { EmptyState } from '@/components/EmptyState';
+import { partnerName } from '@/components/PartnerSection';
 import { DollarIcon } from '@/components/icons';
 import { Screen } from '@/components/Screen';
 import { StatCard } from '@/components/StatCard';
@@ -14,7 +15,7 @@ import { usePayRule } from '@/hooks/usePayRule';
 import { useTimeCard } from '@/hooks/useTimeCard';
 import { useToday } from '@/hooks/useToday';
 import { useEntries } from '@/store/entries';
-import { useSettings } from '@/store/settings';
+import { DEFAULT_PARTNER, useSettings } from '@/store/settings';
 import { addDays, fromKey, mondayOf } from '@/timecard/dates';
 import {
   firstLoggedDay,
@@ -48,7 +49,9 @@ const MONTHS = [
 const offNote = (m: Money) =>
   `Taxes ${formatDollars(m.taxes)} · deductions ${formatDollars(m.deductions)}`;
 const billsNote = (m: Money) =>
-  `Bills ${formatDollars(m.bills)}${m.gas ? ` · gas ${formatDollars(m.gas)}` : ''}`;
+  `Bills ${formatDollars(m.bills + m.partnerBills)}${m.gas ? ` · gas ${formatDollars(m.gas)}` : ''}`;
+/** All the bills and gas that come out of take-home. */
+const spending = (m: Money) => m.bills + m.partnerBills + m.gas;
 
 /**
  * Money (CLAUDE.md §3.12–3.13): each month's estimated pay, what comes off
@@ -65,6 +68,9 @@ export default function MoneyScreen() {
   const rule = usePayRule();
   const finance = useSettings((s) => s.finance);
   const driving = useSettings((s) => s.driving);
+  const partner = useSettings((s) => s.partner) ?? DEFAULT_PARTNER;
+  const withPartner = partner.enabled;
+  const who = partnerName(partner);
   const allEntries = useEntries((s) => s.entries);
   const { width } = useWindowDimensions();
   const wide = Platform.OS === 'web' && width >= WIDE_BREAKPOINT;
@@ -73,8 +79,8 @@ export default function MoneyScreen() {
   const { entries } = useTimeCard(mondayOf(`${year}-01-01`), addDays(mondayOf(`${year}-12-31`), 6));
   const first = useMemo(() => firstLoggedDay(allEntries), [allEntries]);
   const months = useMemo(
-    () => yearMoney(entries, year, today, rule, finance, driving, first),
-    [entries, year, today, rule, finance, driving, first],
+    () => yearMoney(entries, year, today, rule, finance, driving, first, partner),
+    [entries, year, today, rule, finance, driving, first, partner],
   );
   const total = totalMoney(months);
   const now = year === thisYear ? months[fromKey(today).getMonth()] : null;
@@ -111,8 +117,9 @@ export default function MoneyScreen() {
         rows: [],
       };
     }
-    // Take-home splits into bills and gas, and what's left; short months show the gap.
-    const spent = Math.min(Math.max(0, money.takeHome), money.bills + money.gas);
+    // Take-home (with a partner's) splits into bills and gas, and what's left;
+    // short months show the gap.
+    const spent = Math.min(Math.max(0, money.takeHome + money.partnerTakeHome), spending(money));
     const left = Math.max(0, money.leftOver);
     return {
       key: m.month,
@@ -129,7 +136,10 @@ export default function MoneyScreen() {
         { label: 'Taxes', value: formatMoney(money.taxes), color: c.timeOff },
         { label: 'Deductions', value: formatMoney(money.deductions), color: c.other },
         { label: 'Take-home', value: formatMoney(money.takeHome) },
-        { label: 'Bills and gas', value: formatMoney(money.bills + money.gas), color: c.onSite },
+        ...(withPartner
+          ? [{ label: `${who}'s take-home`, value: formatMoney(money.partnerTakeHome) }]
+          : []),
+        { label: 'Bills and gas', value: formatMoney(spending(money)), color: c.onSite },
       ],
       footer:
         money.leftOver >= 0
@@ -139,15 +149,19 @@ export default function MoneyScreen() {
   });
 
   const driveCards = (label: string, d: DrivingTotals | null) =>
-    d?.trips
+    d && (d.trips || d.commuteMiles)
       ? [
           <StatCard
             key={`${label}-miles`}
             label={`Miles ${label}`}
-            value={formatMiles(d.miles)}
-            note={`${d.trips} ${d.trips === 1 ? 'drive' : 'drives'}${
-              d.unknownTrips ? ` · ${d.unknownTrips} without miles` : ''
-            }`}
+            value={formatMiles(d.miles + d.commuteMiles)}
+            note={[
+              d.trips ? `${d.trips} ${d.trips === 1 ? 'drive' : 'drives'}` : '',
+              d.commuteMiles ? `commute ${formatMiles(d.commuteMiles)}` : '',
+              d.unknownTrips ? `${d.unknownTrips} without miles` : '',
+            ]
+              .filter(Boolean)
+              .join(' · ')}
             noteTone={d.unknownTrips ? 'warn' : 'muted'}
           />,
           ...(d.gas != null
@@ -173,7 +187,16 @@ export default function MoneyScreen() {
       : [];
 
   const y = total.money;
-  const hasDriving = total.driving.trips > 0;
+  const hasDriving = total.driving.trips > 0 || total.driving.commuteMiles > 0;
+  const leftLabel = withPartner ? `Left over with ${who}` : 'Left over';
+  const partnerCard = (m: Money) =>
+    withPartner ? (
+      <StatCard
+        label={`${who}'s take-home`}
+        value={formatDollars(m.partnerTakeHome)}
+        note={m.partnerBills ? `Their bills ${formatDollars(m.partnerBills)}` : undefined}
+      />
+    ) : null;
 
   return (
     <Screen wide={wide}>
@@ -210,8 +233,9 @@ export default function MoneyScreen() {
               value={formatDollars(now.money.takeHome)}
               note={offNote(now.money)}
             />
+            {partnerCard(now.money)}
             <StatCard
-              label="Left over"
+              label={leftLabel}
               value={formatDollars(now.money.leftOver)}
               note={billsNote(now.money)}
               noteTone={now.money.leftOver < 0 ? 'warn' : 'muted'}
@@ -227,8 +251,9 @@ export default function MoneyScreen() {
       <View style={styles.grid}>
         <StatCard label="Gross pay" value={formatDollars(y.gross)} />
         <StatCard label="Take-home" value={formatDollars(y.takeHome)} note={offNote(y)} />
+        {partnerCard(y)}
         <StatCard
-          label="Left over"
+          label={leftLabel}
           value={formatDollars(y.leftOver)}
           note={billsNote(y)}
           noteTone={y.leftOver < 0 ? 'warn' : 'muted'}
@@ -258,7 +283,8 @@ export default function MoneyScreen() {
           ]}
         />
         <AppText variant="caption" tone="muted">
-          Each column is the month&apos;s gross pay.{' '}
+          Each column is the month&apos;s gross pay
+          {withPartner ? ` plus ${who}'s take-home` : ''}.{' '}
           {Platform.OS === 'web' ? 'Hover over or tap' : 'Tap'} a column for its breakdown.
         </AppText>
       </View>
@@ -271,7 +297,7 @@ export default function MoneyScreen() {
           <AppText variant="caption" tone="muted" style={styles.monthCol}>
             Month
           </AppText>
-          {['Gross', 'Take-home', 'Left over'].map((h) => (
+          {['Gross', 'Take-home', withPartner ? 'Left (both)' : 'Left over'].map((h) => (
             <AppText key={h} variant="caption" tone="muted" style={styles.num}>
               {h}
             </AppText>
@@ -314,7 +340,9 @@ export default function MoneyScreen() {
 
       <AppText variant="caption" tone="muted">
         {MONEY_NOTE} Bills and fixed deductions are spread evenly over the year; the current month
-        counts only the days so far. Set rates and bills in Settings → Finance and bills.
+        counts only the days so far. Gas includes your daily commute, 5 days a week.
+        {withPartner ? ` Left over includes ${who}'s take-home and bills.` : ''} Set rates and bills
+        in Settings → Finance and bills, Spouse or partner, and Driving.
       </AppText>
     </Screen>
   );

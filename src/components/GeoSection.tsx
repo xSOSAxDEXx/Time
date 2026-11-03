@@ -56,8 +56,8 @@ export function GeoSection() {
     return (
       <Section title="Arrive and leave">
         <AppText variant="caption" tone="muted">
-          In the Android app, Clocked can ask to clock you in and out when you arrive at and leave
-          your places. Browsers can&apos;t watch your location with the page closed, so it
+          In the Android app, Punch&apos;d can ask to clock you in and out when you arrive at and
+          leave your places. Browsers can&apos;t watch your location with the page closed, so it
           isn&apos;t available on the web.
         </AppText>
       </Section>
@@ -70,7 +70,7 @@ export function GeoSection() {
     const got = await requestLocationAccess();
     setAccess(got);
     if (got === 'denied' || got === 'undetermined') {
-      setError('Clocked needs location access to know when you arrive and leave.');
+      setError("Punch'd needs location access to know when you arrive and leave.");
       return;
     }
     setNotifyPermission(await requestPermission());
@@ -85,7 +85,7 @@ export function GeoSection() {
       if (got !== 'always' && got !== 'whileUsing') got = await requestLocationAccess();
       setAccess(got);
       if (got !== 'always' && got !== 'whileUsing') {
-        setError('Clocked needs location access to find where you are.');
+        setError("Punch'd needs location access to find where you are.");
         return null;
       }
       return await currentPosition();
@@ -163,8 +163,8 @@ export function GeoSection() {
   return (
     <Section title="Arrive and leave">
       <AppText variant="caption" tone="muted">
-        When you arrive at or leave one of your places, Clocked asks: clock in, clock out, was that
-        a break, or count the drive as time worked. Nothing is logged unless you say yes. Your
+        When you arrive at or leave one of your places, Punch&apos;d asks: clock in, clock out, was
+        that a break, or count the drive as time worked. Nothing is logged unless you say yes. Your
         location stays on this phone; only the places you set here are saved.
       </AppText>
       <SwitchRow
@@ -176,8 +176,8 @@ export function GeoSection() {
       {enabled && access === 'whileUsing' ? (
         <View style={styles.block}>
           <AppText tone="warn">
-            ⚠ Choose “Allow all the time” for Clocked&apos;s location access, or Android won&apos;t
-            tell Clocked when you arrive or leave with the app closed.
+            ⚠ Choose “Allow all the time” for Punch&apos;d&apos;s location access, or Android
+            won&apos;t tell Punch&apos;d when you arrive or leave with the app closed.
           </AppText>
           <Button label="Open phone settings" onPress={openAppSettings} />
         </View>
@@ -309,7 +309,7 @@ export function GeoSection() {
           <AppText variant="caption" tone="muted">
             Android can take a few minutes to notice you arriving or leaving, and circles smaller
             than 150 m can be missed. Absences of 5 minutes or less are ignored. If questions
-            don&apos;t come, turn off battery optimization for Clocked in your phone&apos;s
+            don&apos;t come, turn off battery optimization for Punch&apos;d in your phone&apos;s
             settings.
           </AppText>
         </View>

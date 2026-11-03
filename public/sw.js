@@ -1,4 +1,4 @@
-/* Clocked service worker.
+/* Punch'd service worker.
  *
  * - Install: precaches the whole web app so the installed app works offline
  *   from the first launch. The file list and version are filled in by

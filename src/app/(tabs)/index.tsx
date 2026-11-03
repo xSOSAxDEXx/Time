@@ -56,7 +56,7 @@ export default function WeekScreen() {
         <Image source={logo} style={styles.logo} accessibilityIgnoresInvertColors alt="" />
         <View style={styles.headerText}>
           <AppText variant="display" accessibilityRole="header">
-            Clocked
+            Punch&apos;d
           </AppText>
           {who ? <AppText tone="muted">{who}</AppText> : null}
         </View>

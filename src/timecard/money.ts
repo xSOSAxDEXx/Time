@@ -10,7 +10,9 @@
  * - Before-tax deductions lower the pay income tax is worked out on; health
  *   ones (not retirement) also lower the pay Social Security + Medicare is on.
  * - Take-home = gross − taxes − every deduction.
- * - Left over = take-home − bills − gas for the month's trips.
+ * - Left over = take-home − bills − gas for the month's trips and daily
+ *   commute (5 days a week). With a partner included, their take-home is
+ *   added and their bills taken off too.
  * - Amounts per paycheck, week or year are spread evenly over the months.
  *   A month only partly covered (before the first logged day, or after
  *   today) gets that share of the fixed amounts, so the current month isn't
@@ -21,6 +23,7 @@ import type {
   Deduction,
   Driving,
   Finance,
+  Partner,
   PaySchedule,
   Route,
   TaxKey,
@@ -67,16 +70,22 @@ export function tripMiles(trip: Trip, routes: Route[]): number | null {
 
 export type DrivingTotals = {
   trips: number;
+  /** Miles of logged trips (not the commute). */
   miles: number;
+  /** Daily commute miles for the days, at 5 days a week. */
+  commuteMiles: number;
   /** Trips with no miles yet (no route saved). */
   unknownTrips: number;
-  /** Null when MPG or gas price isn't set. */
+  /** Gas for the trips and the commute. Null when MPG or gas price isn't set. */
   gas: number | null;
-  /** Null when no reimbursement rate is set. */
+  /** For the trips only. Null when no reimbursement rate is set. */
   reimbursement: number | null;
 };
 
-/** Trips, miles, gas and reimbursement for the days from `from` to `to`. */
+/** Commute days in a week: the daily commute counts 5 days out of 7. */
+export const COMMUTE_DAYS_PER_WEEK = 5;
+
+/** Trips, miles, commute, gas and reimbursement for the days from `from` to `to`. */
 export function drivingTotals(
   entries: Entries,
   from: DateKey,
@@ -95,7 +104,14 @@ export function drivingTotals(
       else miles += m;
     }
   }
-  return { trips, miles, unknownTrips, ...driveCosts(miles, driving) };
+  const days =
+    to < from
+      ? 0
+      : Math.round((fromKey(addDays(to, 1)).getTime() - fromKey(from).getTime()) / 86_400_000);
+  const commuteMiles = ((driving.commuteMiles ?? 0) * days * COMMUTE_DAYS_PER_WEEK) / 7;
+  const { gas } = driveCosts(miles + commuteMiles, driving);
+  const { reimbursement } = driveCosts(miles, driving);
+  return { trips, miles, commuteMiles, unknownTrips, gas, reimbursement };
 }
 
 /** Gas and reimbursement for a number of miles. */
@@ -124,7 +140,10 @@ export type Money = {
   takeHome: number;
   bills: number;
   gas: number;
-  /** Take-home − bills − gas. Can be negative. */
+  /** A partner's take-home and bills (0 unless they're included). */
+  partnerTakeHome: number;
+  partnerBills: number;
+  /** Take-home (+ partner's) − bills (+ partner's) − gas. Can be negative. */
   leftOver: number;
 };
 
@@ -139,6 +158,8 @@ export const NO_MONEY: Money = {
   takeHome: 0,
   bills: 0,
   gas: 0,
+  partnerTakeHome: 0,
+  partnerBills: 0,
   leftOver: 0,
 };
 
@@ -148,12 +169,22 @@ export function addMoney(a: Money, b: Money): Money {
   return out;
 }
 
+const billsPerMonth = (bills: Bill[]) =>
+  bills.reduce((sum, b) => sum + perMonth(b.amount, b.per, 'monthly'), 0);
+
 /**
  * Taxes, deductions and what's left from `gross` pay. `share` is the part
  * of a month this covers (0–1), for the fixed amounts; `gas` is the gas
- * cost for the same days.
+ * cost for the same days. A partner who's included adds their take-home
+ * and bills, for that share of the month too.
  */
-export function moneyFrom(gross: number, finance: Finance, share = 1, gas = 0): Money {
+export function moneyFrom(
+  gross: number,
+  finance: Finance,
+  share = 1,
+  gas = 0,
+  partner?: Partner,
+): Money {
   const amount = (d: Deduction) =>
     d.unit === 'percent'
       ? (gross * d.amount) / 100
@@ -184,8 +215,12 @@ export function moneyFrom(gross: number, finance: Finance, share = 1, gas = 0): 
   const fica = tax('fica', finance.ficaPct, Math.max(0, gross - beforeFica));
   const taxes = federal + state + local + fica;
   const takeHome = gross - taxes - deductions;
-  const bills =
-    finance.bills.reduce((sum, b) => sum + perMonth(b.amount, b.per, 'monthly'), 0) * share;
+  const bills = billsPerMonth(finance.bills) * share;
+  const withPartner = !!partner?.enabled;
+  const partnerTakeHome = withPartner
+    ? perMonth(partner.takeHome, 'paycheck', partner.paySchedule) * share
+    : 0;
+  const partnerBills = withPartner ? billsPerMonth(partner.bills) * share : 0;
   return {
     gross,
     federal,
@@ -197,7 +232,9 @@ export function moneyFrom(gross: number, finance: Finance, share = 1, gas = 0): 
     takeHome,
     bills,
     gas,
-    leftOver: takeHome - bills - gas,
+    partnerTakeHome,
+    partnerBills,
+    leftOver: takeHome + partnerTakeHome - bills - partnerBills - gas,
   };
 }
 
@@ -238,6 +275,7 @@ export function yearMoney(
   driving: Driving,
   /** The first day anything was logged at all (defaults to the first in `entries`). */
   firstLogged: DateKey | undefined = firstLoggedDay(entries),
+  partner?: Partner,
 ): MonthMoney[] {
   return Array.from({ length: 12 }, (_, m) => {
     const first = toKey(new Date(year, m, 1));
@@ -257,7 +295,7 @@ export function yearMoney(
       month,
       first,
       last,
-      money: moneyFrom(gross, finance, share, drive.gas ?? 0),
+      money: moneyFrom(gross, finance, share, drive.gas ?? 0, partner),
       driving: drive,
       share,
     };
@@ -267,18 +305,20 @@ export function yearMoney(
 /** The year's totals from its months. */
 export function totalMoney(months: MonthMoney[]): { money: Money; driving: DrivingTotals } {
   let money = NO_MONEY;
-  const driving = { trips: 0, miles: 0, unknownTrips: 0, gas: null, reimbursement: null } as {
-    trips: number;
-    miles: number;
-    unknownTrips: number;
-    gas: number | null;
-    reimbursement: number | null;
+  const driving: DrivingTotals = {
+    trips: 0,
+    miles: 0,
+    commuteMiles: 0,
+    unknownTrips: 0,
+    gas: null,
+    reimbursement: null,
   };
   for (const m of months) {
     if (m.money) money = addMoney(money, m.money);
     if (m.driving) {
       driving.trips += m.driving.trips;
       driving.miles += m.driving.miles;
+      driving.commuteMiles += m.driving.commuteMiles;
       driving.unknownTrips += m.driving.unknownTrips;
       if (m.driving.gas != null) driving.gas = (driving.gas ?? 0) + m.driving.gas;
       if (m.driving.reimbursement != null)

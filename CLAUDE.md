@@ -1,4 +1,4 @@
-# Clocked — project brief
+# Punch'd — project brief
 
 Standing context for Claude Code in the `Time` repo
 (https://github.com/xSOSAxDEXx/Time). Read this with `docs/PROGRESS.md` at
@@ -8,14 +8,14 @@ the start of every session.
 
 ## 1. What we're building
 
-**Clocked** is a simple personal time card for hourly and salaried workers
-who track their own hours. You log when you start and stop, breaks, remote
-work and time off, and the app tells you how many hours you've worked, the
-earliest time you can leave and still meet your daily hours, and how your
-week is going.
+**Punch'd** (named Clocked until 3 Nov 2026) is a simple personal time card
+for hourly and salaried workers who track their own hours. You log when you
+start and stop, breaks, remote work and time off, and the app tells you how
+many hours you've worked, the earliest time you can leave and still meet your
+daily hours, and how your week is going.
 
 It started as a single HTML page built from the owner's Excel time card.
-Clocked turns that page into a real app: **Android app + installable
+Punch'd turns that page into a real app: **Android app + installable
 website (PWA)** from one codebase, the same way the owner's other app,
 **Luna Beats** (https://github.com/xSOSAxDEXx/Luna), was built.
 
@@ -221,7 +221,7 @@ closed; iPhone uses the web app). Off by default.
   phone is now; 100 / 150 / 250 / 500 m), or for a big site an **outline**
   (owner request, 3 Nov 2026): corners pasted from Google Maps (dropped
   pins' coordinates, a link, or a My Maps KML) or added while standing at
-  each corner. Android only watches circles, so Clocked registers the
+  each corner. Android only watches circles, so Punch'd registers the
   smallest circle covering the outline plus 30 m. No map in the app (that
   would need a Google Cloud account and API key).
 - The circles are registered again every time the app starts (Android
@@ -263,6 +263,10 @@ Settings → Finance and bills, and a **Money** tab. Needs an hourly rate.
   Before-tax lowers income tax; before-tax health ones also lower Social
   Security + Medicare, retirement ones don't.
 - **Bills** (rent, car, phone, ...): weekly, monthly or yearly.
+- **Spouse or partner** (owner request, 3 Nov 2026): their take-home pay
+  per paycheck (and how often they're paid) and their bills. A switch
+  includes them in the Money tab: their take-home is added and their bills
+  taken off "left over". Turning it off keeps what was entered.
 - Three levels per month and year: **gross → take-home → left over**
   (after bills and gas). Chart of each month's gross pay split into taxes,
   deductions, bills and gas, and left over; plus figures for this month
@@ -282,6 +286,9 @@ Settings → Finance and bills, and a **Money** tab. Needs an hourly rate.
 - Settings → Driving: MPG, gas price, and a reimbursement rate per mile.
   Gas comes off "left over"; reimbursement is shown on its own (not every
   employer pays it).
+- **Daily commute** (owner request, 3 Nov 2026): miles to work and back,
+  counted 5 days a week (5/7 of every day in the range) for gas. Not
+  reimbursed.
 - Money tab: miles, drives, gas and reimbursement for the month and year.
   Drives and routes are in backups; the CSV keeps the HTML page's columns.
 
@@ -303,7 +310,11 @@ HTML page.
 
 ### Logo & name
 
-- Name: **Clocked**
+- Name: **Punch'd** (owner request, 3 Nov 2026; was Clocked). The app's
+  internal IDs keep "clocked" so installed copies update in place and keep
+  their data: Android package `com.clocked.app`, URL scheme, storage keys,
+  background task and notification IDs, and the backup format
+  (`clocked-backup`). Only what people see says Punch'd.
 - Logo: **gold brass knuckles smashing a cracked alarm clock** on a blue
   starburst (the owner's artwork, `assets/brand/logo-source.jpg`). Every
   icon size comes from it, like Luna (`npm run icons`).

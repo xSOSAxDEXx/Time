@@ -1,4 +1,11 @@
-import { DEFAULT_DRIVING, DEFAULT_FINANCE, type Driving, type Finance } from '@/store/settings';
+import {
+  DEFAULT_DRIVING,
+  DEFAULT_FINANCE,
+  DEFAULT_PARTNER,
+  type Driving,
+  type Finance,
+  type Partner,
+} from '@/store/settings';
 
 import {
   drivingTotals,
@@ -103,6 +110,33 @@ describe('take-home and left over', () => {
   });
 });
 
+describe('a spouse or partner', () => {
+  const partner: Partner = {
+    ...DEFAULT_PARTNER,
+    enabled: true,
+    name: 'Sam',
+    takeHome: 1200,
+    paySchedule: 'semimonthly',
+    bills: [{ id: 'g', name: 'Gym', amount: 600, per: 'month' }],
+  };
+
+  it('adds their take-home and bills to left over, for the share of the month', () => {
+    // Half a month: their 2400 a month take-home is 1200, their bills 300.
+    const m = moneyFrom(1000, DEFAULT_FINANCE, 0.5, 0, partner);
+    expect(m.partnerTakeHome).toBeCloseTo(1200);
+    expect(m.partnerBills).toBeCloseTo(300);
+    // Yours stays yours.
+    expect(m.takeHome).toBeCloseTo(923.5);
+    expect(m.leftOver).toBeCloseTo(923.5 + 1200 - 300);
+  });
+
+  it('counts nothing of theirs while turned off', () => {
+    const m = moneyFrom(1000, DEFAULT_FINANCE, 1, 0, { ...partner, enabled: false });
+    expect([m.partnerTakeHome, m.partnerBills]).toEqual([0, 0]);
+    expect(m.leftOver).toBeCloseTo(923.5);
+  });
+});
+
 describe('driving', () => {
   it('finds a route either way round, and a trip can set its own miles', () => {
     expect(findRoute(driving.routes, 'Client site', 'Main office')?.miles).toBe(20);
@@ -133,6 +167,15 @@ describe('driving', () => {
       gas: null,
       reimbursement: null,
     });
+  });
+
+  it('counts the daily commute 5 days a week for gas, but not for reimbursement', () => {
+    const t = drivingTotals({}, '2030-01-01', '2030-01-14', { ...driving, commuteMiles: 30 });
+    // Two weeks: 10 commute days of 30 miles.
+    expect(t.commuteMiles).toBeCloseTo(300);
+    expect(t.miles).toBe(0);
+    expect(t.gas).toBeCloseTo((300 / 25) * 3.2);
+    expect(t.reimbursement).toBe(0);
   });
 
   it('formats miles', () => {

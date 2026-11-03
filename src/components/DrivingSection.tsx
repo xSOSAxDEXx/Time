@@ -13,7 +13,8 @@ import { SelectField } from './SelectField';
 
 /**
  * Settings → Driving (CLAUDE.md §3.13): the car's MPG, the gas price, a
- * reimbursement rate, and the miles between places (entered once per route).
+ * reimbursement rate, the daily commute, and the miles between places
+ * (entered once per route).
  */
 export function DrivingSection() {
   const { colors } = useTheme();
@@ -44,6 +45,13 @@ export function DrivingSection() {
               'dollars per mile',
               10,
             ],
+            [
+              'commuteMiles',
+              'Daily commute miles',
+              'Daily commute, miles there and back',
+              'miles',
+              1000,
+            ],
           ] as const
         ).map(([key, short, label, unit, max]) => (
           <View key={key} style={styles.cell}>
@@ -63,6 +71,10 @@ export function DrivingSection() {
       <AppText variant="caption" tone="muted">
         Reimbursement is your employer&apos;s rate, or the IRS business mileage rate for the year.
         Leave it blank to skip it.
+      </AppText>
+      <AppText variant="caption" tone="muted">
+        Daily commute is the miles from home to work and back. Gas for it is counted 5 days a week
+        on the Money tab (not reimbursed).
       </AppText>
 
       <AppText variant="label">Routes</AppText>

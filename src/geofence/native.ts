@@ -7,7 +7,7 @@ import { promptText } from './text';
 
 /**
  * The phone side of arrive-and-leave (CLAUDE.md §3.11), Android only: the
- * circles are registered with Android, which wakes Clocked's background task
+ * circles are registered with Android, which wakes Punch'd's background task
  * on arriving or leaving, even with the app closed. Location never leaves
  * the phone, and only the circles are saved (no location history).
  */
@@ -28,7 +28,7 @@ export async function getLocationAccess(): Promise<LocationAccess> {
 
 /**
  * Asks for location "while using" and then "all the time" (Android shows the
- * second on its settings page). Only called after Clocked has explained why.
+ * second on its settings page). Only called after Punch'd has explained why.
  */
 export async function requestLocationAccess(): Promise<LocationAccess> {
   const fg = await Location.requestForegroundPermissionsAsync();

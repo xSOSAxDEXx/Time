@@ -50,7 +50,7 @@ export function ReminderSection() {
           {permission === 'undetermined' ? (
             <>
               <AppText variant="caption" tone="muted">
-                Clocked needs your permission to show notifications.
+                Punch&apos;d needs your permission to show notifications.
               </AppText>
               <Button
                 label="Allow notifications"
@@ -60,25 +60,25 @@ export function ReminderSection() {
           ) : permission === 'denied' ? (
             <>
               <AppText tone="warn">
-                ⚠ Notifications are turned off for Clocked
+                ⚠ Notifications are turned off for Punch&apos;d
                 {web ? " in this browser's site settings." : " in your phone's settings."}
-                {web ? ' The reminder still shows as a banner while Clocked is open.' : ''}
+                {web ? " The reminder still shows as a banner while Punch'd is open." : ''}
               </AppText>
               {web ? null : <Button label="Open phone settings" onPress={openAppSettings} />}
             </>
           ) : permission === 'unsupported' ? (
             <AppText variant="caption" tone="muted">
               This browser can&apos;t show notifications, so the reminder shows as a banner while
-              Clocked is open.
+              Punch&apos;d is open.
             </AppText>
           ) : null}
         </>
       ) : null}
       {web ? (
         <AppText variant="caption" tone="muted">
-          On the web, the reminder only works while Clocked is open in a browser tab: browsers
-          can&apos;t notify you once the page is closed. On iPhone, add Clocked to your Home Screen
-          first. For reminders with the app closed, use the Android app.
+          On the web, the reminder only works while Punch&apos;d is open in a browser tab: browsers
+          can&apos;t notify you once the page is closed. On iPhone, add Punch&apos;d to your Home
+          Screen first. For reminders with the app closed, use the Android app.
         </AppText>
       ) : null}
     </Section>

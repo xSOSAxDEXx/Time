@@ -125,7 +125,7 @@ describe('clock-out reminder', () => {
     await screen.findByRole('header', { name: 'Clock-out reminder' });
     await flush();
     expect(
-      screen.getByText(/Notifications are turned off for Clocked in your phone's settings/),
+      screen.getByText(/Notifications are turned off for Punch'd in your phone's settings/),
     ).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Open phone settings' })).toBeOnTheScreen();
     await act(async () => fireEvent.press(screen.getByRole('radio', { name: '10 min early' })));

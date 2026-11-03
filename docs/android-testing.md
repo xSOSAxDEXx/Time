@@ -17,7 +17,7 @@ A screenshot helps. Crop out anything personal.
 
 1. On the phone, open https://github.com/xSOSAxDEXx/Time/releases.
 2. Pick the newest **Android test build N**. Under **Assets**, tap
-   `clocked-preview-N.apk`.
+   `punchd-preview-N.apk`.
 3. Open the download. If asked, allow installs from your browser or Files
    app.
 4. If Play Protect warns about an unknown app, tap **More details → Install
@@ -76,7 +76,7 @@ Needs location set to **Allow all the time** and notifications on.
       will watch, and it says "✓ Outline · N corners · N m circle".
 - [ ] Standing at the site, **Check where I am** says "inside the
       outline". After the phone has noticed you arriving, it also says when.
-- [ ] After restarting the phone, open Clocked once (it registers the
+- [ ] After restarting the phone, open Punch'd once (it registers the
       places again).
 
 Android can take a few minutes to notice you arriving or leaving, more so
@@ -143,7 +143,7 @@ iPhones use the web app. There's no iPhone app.
 
 1. In **Safari**, open https://xsosaxdexx.github.io/Time/.
 2. Tap **Share → Add to Home Screen → Add**.
-3. Open **Clocked** from the Home Screen.
+3. Open **Punch'd** from the Home Screen.
 
 - [ ] It opens full screen with the logo icon and no Safari toolbar. The tab
       bar sits above the home indicator, and nothing is hidden by the notch.

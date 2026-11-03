@@ -58,9 +58,9 @@ export function ReminderBanner() {
       <View style={card}>
         <AppText variant="bodyStrong">Get a reminder when you can clock out?</AppText>
         <AppText>
-          Clocked can send a notification at your min clock out ({time(plan.minOut)}), when you hit
-          your {formatHours(requiredHours).replace(/\.?0+$/, '')} hours
-          {web ? ', while Clocked is open in this browser' : ''}. Nothing is sent anywhere else.
+          Punch&apos;d can send a notification at your min clock out ({time(plan.minOut)}), when you
+          hit your {formatHours(requiredHours).replace(/\.?0+$/, '')} hours
+          {web ? ", while Punch'd is open in this browser" : ''}. Nothing is sent anywhere else.
         </AppText>
         <View style={styles.row}>
           <Button

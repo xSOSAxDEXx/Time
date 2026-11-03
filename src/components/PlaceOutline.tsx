@@ -126,7 +126,7 @@ export function PlaceOutline({ location, outline, onChange, here }: Props) {
           ? 'No corners yet.'
           : outline.length < 3
             ? `${outline.length} corner${outline.length === 1 ? '' : 's'}. Add at least 3.`
-            : `✓ ${outline.length} corners. Clocked watches the ${circle?.radiusMeters} m circle around them (dashed).`}
+            : `✓ ${outline.length} corners. Punch'd watches the ${circle?.radiusMeters} m circle around them (dashed).`}
       </AppText>
 
       <TextInput

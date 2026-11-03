@@ -1,6 +1,6 @@
 {
-  "name": "Clocked",
-  "short_name": "Clocked",
+  "name": "Punch'd",
+  "short_name": "Punch'd",
   "description": "Your personal time card. Clock in, clock out, know where you stand.",
   "start_url": "./",
   "scope": "./",

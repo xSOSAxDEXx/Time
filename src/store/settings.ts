@@ -78,6 +78,29 @@ export const DEFAULT_FINANCE: Finance = {
   bills: [],
 };
 
+/**
+ * A spouse or partner's money (owner request, 3 Nov 2026): their take-home
+ * pay and bills, added to yours on the Money tab while `enabled`. Kept when
+ * turned off.
+ */
+export type Partner = {
+  enabled: boolean;
+  /** Blank shows as "Partner". */
+  name: string;
+  /** Their take-home pay per paycheck (after their taxes and deductions). */
+  takeHome: number;
+  paySchedule: PaySchedule;
+  bills: Bill[];
+};
+
+export const DEFAULT_PARTNER: Partner = {
+  enabled: false,
+  name: '',
+  takeHome: 0,
+  paySchedule: 'biweekly',
+  bills: [],
+};
+
 /** Miles between two places, either way round. */
 export type Route = { from: string; to: string; miles: number };
 
@@ -88,6 +111,11 @@ export type Driving = {
   gasPrice: number | null;
   /** Dollars per mile, e.g. an employer's or the IRS business rate. */
   reimbursePerMile: number | null;
+  /**
+   * Miles driven to work and back each day (owner request, 3 Nov 2026),
+   * counted 5 days a week for gas. Missing in older saves.
+   */
+  commuteMiles?: number | null;
   routes: Route[];
 };
 
@@ -138,6 +166,7 @@ export type Settings = {
   places: GeoPlace[];
   finance: Finance;
   driving: Driving;
+  partner: Partner;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -160,6 +189,7 @@ export const DEFAULT_SETTINGS: Settings = {
   places: [],
   finance: DEFAULT_FINANCE,
   driving: DEFAULT_DRIVING,
+  partner: DEFAULT_PARTNER,
 };
 
 type SettingsState = Settings & {

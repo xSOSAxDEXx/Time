@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 3 Nov 2026 (tax amounts in dollars, outlines for big places)._
+_Last updated: 3 Nov 2026 (renamed Punch'd, spouse or partner, daily commute)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -22,7 +22,8 @@ _Last updated: 3 Nov 2026 (tax amounts in dollars, outlines for big places)._
 
 ## Owner decisions (don't re-ask)
 
-- **Name:** Clocked.
+- **Name:** Punch'd (3 Nov 2026; was Clocked). Internal IDs stay "clocked"
+  (see CLAUDE.md §4) so the installed app updates in place.
 - **Logo:** the owner's artwork, gold brass knuckles smashing an alarm
   clock (2 Nov 2026).
 - **Starting point:** the owner's time card HTML page (Excel formulas
@@ -116,6 +117,22 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
   screen readers.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
+
+## Punch'd, partner and commute (3 Nov 2026, owner request)
+
+- **Renamed Punch'd** everywhere people see it: app and home screen name,
+  web title and manifest, screen text, backup and CSV file names
+  (`punchd-backup-….json`, `punchd-….csv`), APK name (`punchd-preview-N`).
+  Kept "clocked" inside (package `com.clocked.app`, storage keys, task and
+  notification IDs, backup format), so the new build installs over the old
+  one with data kept, and old backups still restore.
+- **Settings → Spouse or partner**: take-home per paycheck, pay schedule and
+  bills, with an "Include in Money" switch. Money adds their take-home and
+  bills to "left over" (label "Left over with {name}"), shows their
+  take-home as its own card and in each month's breakdown.
+- **Daily commute** in Settings → Driving: miles to work and back, counted
+  5 days a week for gas (not reimbursement). Money's miles card shows it.
+- Bills editing moved to `BillsEditor`, shared by yours and the partner's.
 
 ## Managing places (3 Nov 2026, owner request)
 
@@ -211,4 +228,5 @@ Found and fixed:
 - Try test build 3: a break again (no repeat "Clock out?"), the "Log +
   usual break" answer, a drive to another place, and a trip under 5
   minutes. And the web app on an iPhone. See `docs/android-testing.md`.
-- Confirm the app ID `com.clocked.app` before any Play Store release.
+- Confirm the app ID `com.clocked.app` before any Play Store release (kept
+  after the rename to Punch'd so updates install over the old app).

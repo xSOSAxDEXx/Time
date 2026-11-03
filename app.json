@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Clocked",
+    "name": "Punch'd",
     "slug": "clocked",
     "description": "Your personal time card. Clock in, clock out, know where you stand.",
     "version": "1.0.0",
@@ -35,8 +35,8 @@
     "web": {
       "output": "single",
       "favicon": "./assets/brand/favicon.png",
-      "name": "Clocked",
-      "shortName": "Clocked",
+      "name": "Punch'd",
+      "shortName": "Punch'd",
       "themeColor": "#1D4ED8",
       "backgroundColor": "#F6F7F9",
       "description": "Your personal time card. Clock in, clock out, know where you stand."

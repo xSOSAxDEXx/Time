@@ -14,7 +14,7 @@ export type Permission = 'granted' | 'denied' | 'undetermined' | 'unsupported';
 const ID = 'clocked-clock-out';
 const CHANNEL = 'clock-out';
 
-/** Shows the reminder as a banner even while Clocked is open. Call once at start-up. */
+/** Shows the reminder as a banner even while Punch'd is open. Call once at start-up. */
 export function setUpReminders(): void {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -32,7 +32,7 @@ export async function getPermission(): Promise<Permission> {
   return p.canAskAgain ? 'undetermined' : 'denied';
 }
 
-/** Asks the phone for permission. Only called after Clocked has explained why. */
+/** Asks the phone for permission. Only called after Punch'd has explained why. */
 export async function requestPermission(): Promise<Permission> {
   const p = await Notifications.requestPermissionsAsync();
   if (p.granted) return 'granted';
@@ -54,7 +54,7 @@ async function ensureChannel() {
 
 /**
  * Makes the scheduled reminder match `plan`: replaces any earlier one, or
- * just cancels it when there's no plan, the time has passed, or Clocked
+ * just cancels it when there's no plan, the time has passed, or Punch'd
  * isn't allowed to notify.
  */
 export async function syncReminder(
@@ -76,7 +76,7 @@ export async function syncReminder(
   });
 }
 
-/** Opens Clocked's page in the phone's settings (notifications, location). */
+/** Opens Punch'd's page in the phone's settings (notifications, location). */
 export function openAppSettings(): void {
   void Linking.openSettings();
 }

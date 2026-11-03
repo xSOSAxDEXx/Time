@@ -42,6 +42,6 @@ describe('CSV export', () => {
 
   it('is empty apart from the header when nothing is logged', () => {
     expect(buildCsv({}, '2030-01-09', 8)).toBe('﻿' + CSV_COLUMNS.join(',') + '\r\n');
-    expect(csvFileName(new Date(2030, 0, 9))).toBe('clocked-2030-01-09.csv');
+    expect(csvFileName(new Date(2030, 0, 9))).toBe('punchd-2030-01-09.csv');
   });
 });

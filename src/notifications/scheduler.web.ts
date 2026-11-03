@@ -3,7 +3,7 @@ import type { Permission } from './scheduler';
 
 /**
  * The clock-out reminder on the web. Browsers can't reliably notify once the
- * page is closed, so this only works while Clocked is open in a tab: a timer
+ * page is closed, so this only works while Punch'd is open in a tab: a timer
  * shows a browser notification (when allowed) at the reminder time, and the
  * Week screen shows a banner (ReminderBanner). See the README for the limits.
  */

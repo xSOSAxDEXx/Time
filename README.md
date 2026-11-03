@@ -1,4 +1,4 @@
-# Clocked
+# Punch'd
 
 Your personal time card. Clock in, clock out, know where you stand.
 
@@ -72,7 +72,7 @@ Settings → Backup and export.
   every logged day and every setting, including company holidays and pay.
   On the phone it opens the share sheet; on the web it downloads.
 - **Restore** opens a file, says what's in it, and asks before replacing
-  the days on the device. It reads Clocked backups and the time card HTML
+  the days on the device. It reads Punch'd backups and the time card HTML
   page's data file (`timecard-data.json`) and Backup file. From the HTML
   page's files it takes the days, name, badge, primary location, required
   hours, lists and theme; holidays and pay settings stay as they are.
@@ -86,10 +86,10 @@ Settings → Backup and export.
 
 ## Clock-out reminder
 
-Settings → Clock-out reminder (on by default). When you clock in, Clocked
+Settings → Clock-out reminder (on by default). When you clock in, Punch'd
 works out your min clock-out time and reminds you then (or 5, 10 or 15
 minutes early). It moves when start, break, remote or time off change, and
-is cancelled when you clock out or clear the day. Clocked asks for
+is cancelled when you clock out or clear the day. Punch'd asks for
 notification permission the first time you clock in with the reminder on,
 after explaining why; "Not now" turns the reminder off.
 
@@ -100,7 +100,7 @@ after explaining why; "Not now" turns the reminder off.
   set up.
 - **Web (and iPhone):** browsers can't reliably notify you once the page is
   closed, and the web app has no server to send one. So on the web the
-  reminder only works **while Clocked is open in a tab**: a browser
+  reminder only works **while Punch'd is open in a tab**: a browser
   notification (if you allow it) at the reminder time, and a banner on the
   Week screen. On iPhone, Safari only allows notifications for web apps
   added to the Home Screen (iOS 16.4 and later); without that you get the
@@ -117,7 +117,7 @@ after explaining why; "Not now" turns the reminder off.
 
 ## Estimated pay
 
-Set an hourly rate in Settings → Pay (blank hides pay everywhere). Clocked
+Set an hourly rate in Settings → Pay (blank hides pay everywhere). Punch'd
 then shows **Estimated pay** in the week footer, on each week in All weeks,
 and in the chart range summary, always noted as before taxes and not an
 official pay stub (`src/timecard/pay.ts`).
@@ -143,6 +143,12 @@ tax) and bills (weekly, monthly or yearly). The **Money** tab shows each
 month's and the year's gross pay, take-home pay and what's left after bills
 and gas, with a chart of every month.
 
+Settings → **Spouse or partner**: their take-home pay per paycheck, how
+often they're paid, and their bills. With **Include in Money** on, the
+Money tab adds their take-home and takes off their bills, so "left over" is
+for the two of you. Turn it off to see just yours; what you entered is
+kept.
+
 How it's worked out (`src/timecard/money.ts`):
 
 - Before-tax deductions lower the pay income tax is figured on; before-tax
@@ -156,7 +162,9 @@ How it's worked out (`src/timecard/money.ts`):
 ## Driving: miles and gas
 
 Settings → **Driving**: your car's MPG, the gas price, and a mileage
-reimbursement rate (your employer's, or the IRS business rate). Add the
+reimbursement rate (your employer's, or the IRS business rate), and your
+**daily commute** (miles to work and back), which counts for gas 5 days a
+week but isn't reimbursed. Add the
 miles between two places once as a **route**. Each day can have drives:
 arrive and leave adds one when you answer its "Log the drive?" question,
 and the day editor (**Drives**) adds them by hand. Typing the miles for a
@@ -169,15 +177,15 @@ columns.
 
 Settings → Arrive and leave (off by default). Give each place in your
 Locations list a circle ("Set to where I am now", 100–500 m). Android then
-wakes Clocked when you arrive at or leave one, even with the app closed,
-and Clocked **asks**: it never logs anything on its own.
+wakes Punch'd when you arrive at or leave one, even with the app closed,
+and Punch'd **asks**: it never logs anything on its own.
 
 For a big site, use **Outline** instead: in Google Maps, press and hold on
 each corner to drop a pin, tap its coordinates to copy them, and paste them
-into Clocked (several at once is fine; a Google Maps link or the
+into Punch'd (several at once is fine; a Google Maps link or the
 `<coordinates>` of a Google My Maps KML file work too), or stand at each
 corner and tap **Add a corner where I am**. Android can only watch circles,
-so Clocked registers the smallest circle covering the outline plus 30 m and
+so Punch'd registers the smallest circle covering the outline plus 30 m and
 draws both so a wrong corner stands out. **Check where I am** says whether
 you're inside each place right now. There's no map inside the app: that
 would need a Google Cloud account with billing and an API key. The maths is
@@ -210,14 +218,14 @@ Limits, honestly:
 - Needs location access **"Allow all the time"** and notifications.
 - Android can take a few minutes to notice arriving or leaving, and some
   phones delay it further to save battery (turn off battery optimization
-  for Clocked if questions don't come). Circles under about 150 m can be
+  for Punch'd if questions don't come). Circles under about 150 m can be
   missed.
 - Breaks taken without leaving the circle can't be detected.
-- Android forgets the circles when the phone restarts. Clocked registers
+- Android forgets the circles when the phone restarts. Punch'd registers
   them again whenever it opens, so open it once after a restart.
 - Your location stays on the phone. Only the circles are saved, and they're
   in backups; no location history is kept.
-- If Clocked is ever published on the Play Store, background location needs
+- If Punch'd is ever published on the Play Store, background location needs
   Google's extra review. Sharing the APK from GitHub doesn't.
 
 ### Dependencies added (arrive and leave)
@@ -225,7 +233,7 @@ Limits, honestly:
 - `expo-location`: location permission, "where am I now" and the
   geofences. Its config plugin adds Android's background location
   permission (no foreground service, nothing for iOS).
-- `expo-task-manager`: runs Clocked's code when Android reports arriving or
+- `expo-task-manager`: runs Punch'd's code when Android reports arriving or
   leaving with the app closed.
 
 Both are free Expo modules (the versions Expo SDK 58 lists), with no

@@ -60,14 +60,14 @@ jobs:
       - name: Name the APK
         id: apk
         run: |
-          name="clocked-preview-${{ github.run_number }}.apk"
+          name="punchd-preview-${{ github.run_number }}.apk"
           cp android/app/build/outputs/apk/release/app-release.apk "$name"
           echo "path=$name" >> "$GITHUB_OUTPUT"
           ls -lh "$name"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: clocked-preview-${{ github.run_number }}
+          name: punchd-preview-${{ github.run_number }}
           path: ${{ steps.apk.outputs.path }}
 
       - name: Publish as a pre-release
