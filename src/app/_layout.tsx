@@ -3,8 +3,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
 
-// Android's arrive-and-leave background task must be defined as the app loads.
-import '@/geofence/task';
 import { registerServiceWorker } from '@/pwa/registerServiceWorker';
 import { useTheme } from '@/theme';
 

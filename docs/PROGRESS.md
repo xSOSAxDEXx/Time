@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 3 Nov 2026 (renamed Punch'd, spouse or partner, daily commute)._
+_Last updated: 4 Nov 2026 (arrive and leave with the app closed)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -117,6 +117,17 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
   screen readers.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
+
+## Arrive and leave with the app closed (4 Nov 2026, owner report)
+
+- The owner left work twice with the app closed (location "all the time",
+  battery unrestricted) and got no "Clock out?" or break question.
+- Cause: the background task was defined from the root layout. When
+  Android wakes a closed app for a geofence, no screen loads, so the task
+  wasn't found and the event was dropped. It only worked while the app was
+  still in memory.
+- Fix: a new entry file, `index.ts` (package.json `main`), defines the task
+  first, then starts Expo Router. A test checks the entry defines it.
 
 ## Punch'd, partner and commute (3 Nov 2026, owner request)
 

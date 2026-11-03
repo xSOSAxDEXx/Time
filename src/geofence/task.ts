@@ -6,8 +6,8 @@ import { GEOFENCE_TASK } from './native';
 
 /**
  * Android runs this when the phone arrives at or leaves one of the circles,
- * even with Punch'd closed. It must be defined when the app's code loads,
- * so the root layout imports this file.
+ * even with Punch'd closed. It must be defined as soon as the app's code
+ * loads, before any screen, so the entry file (index.ts) imports it first.
  */
 TaskManager.defineTask<{ eventType: GeofencingEventType; region: LocationRegion }>(
   GEOFENCE_TASK,
