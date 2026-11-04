@@ -29,9 +29,17 @@ import {
   type Route,
   type Settings,
 } from '@/store/settings';
+import { MAX_BREAKS } from '@/timecard/breaks';
 import { isClockTime, isDateKey, toKey } from '@/timecard/dates';
 import type { HolidayRule } from '@/timecard/holidays';
-import { isEmptyEntry, type Entries, type Entry, type Travel, type Trip } from '@/timecard/types';
+import {
+  isEmptyEntry,
+  type BreakTime,
+  type Entries,
+  type Entry,
+  type Travel,
+  type Trip,
+} from '@/timecard/types';
 
 export const BACKUP_FORMAT = 'clocked-backup';
 export const BACKUP_VERSION = 1;
@@ -130,6 +138,7 @@ type Fields = {
   location: unknown;
   comment: unknown;
   trips?: unknown;
+  breaks?: unknown;
   skipHoliday?: unknown;
 };
 
@@ -184,6 +193,18 @@ function readDay(f: Fields): { entry: Entry; repaired: boolean } | null {
     const ok = trips.filter((t): t is Trip => t != null);
     if (ok.length) entry.trips = ok;
   } else if (f.trips != null) repaired = true;
+  if (Array.isArray(f.breaks)) {
+    const breaks = f.breaks
+      .slice(0, MAX_BREAKS)
+      .map((b): BreakTime | null =>
+        isObject(b) && isClockTime(b.start) && isClockTime(b.end)
+          ? { start: b.start, end: b.end }
+          : null,
+      );
+    if (breaks.some((b) => b == null)) repaired = true;
+    const ok = breaks.filter((b): b is BreakTime => b != null);
+    if (ok.length) entry.breaks = ok;
+  } else if (f.breaks != null) repaired = true;
   if (f.skipHoliday === true) entry.skipHoliday = true;
   return { entry, repaired };
 }
@@ -400,6 +421,7 @@ const SETTING_READERS: { [K in keyof Settings]: (v: unknown) => Settings[K] | nu
     return out;
   },
   usualBreakMinutes: (v) => (isInt(v, 0, 480) ? v : null),
+  usualBreakStart: (v) => (isClockTime(v) ? v : null),
   holidays: (v) =>
     Array.isArray(v)
       ? v

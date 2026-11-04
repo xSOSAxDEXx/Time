@@ -164,6 +164,8 @@ export type Settings = {
    * the real break is logged. 0 = off.
    */
   usualBreakMinutes: number;
+  /** When the usual break starts, "HH:MM" (default noon). */
+  usualBreakStart: string;
   /** Company holidays, kept from year to year. */
   holidays: HolidayRule[];
   /** Count each company holiday as a full day of Company Holiday time off, unless something else is logged. */
@@ -191,6 +193,7 @@ export const DEFAULT_SETTINGS: Settings = {
   overtime: DEFAULT_OVERTIME,
   timeOffPay: { PTO: 1, Floating: 1, 'Company Holiday': 1, Unpaid: 0 },
   usualBreakMinutes: 0,
+  usualBreakStart: '12:00',
   holidays: STANDARD_HOLIDAYS,
   autoHolidays: true,
   geofencing: false,

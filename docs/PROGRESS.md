@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 4 Nov 2026 (revision number shown in the app)._
+_Last updated: 4 Nov 2026 (break times)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -117,6 +117,18 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
   screen readers.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
+
+## Break times (4 Nov 2026, owner request)
+
+- Phone test: a break with the app closed was caught and logged.
+- Each day can list its break times (`Entry.breaks`, `src/timecard/breaks.ts`):
+  the day editor adds and removes them (adding adds the length to Break),
+  the Week list shows "Break 11:30 AM – 11:54 AM", and arrive and leave's
+  break answers log the time away as a break time.
+- Settings → Usual break starts at (default 12:00 PM), shown once a usual
+  break is set. New break times start filled in with it, and "Log + usual
+  break" logs the usual break at that time. In backups; the CSV keeps the
+  HTML page's columns (break minutes only).
 
 ## Code review follow-ups (4 Nov 2026)
 

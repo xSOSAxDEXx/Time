@@ -117,7 +117,11 @@ describe('leaving and coming back', () => {
       ],
     });
     const withBreak = of(day(TODAY, { start: '08:00', breakHours: 0.25 }));
-    expect(answerPatch(last.notify!, 'break', withBreak)).toEqual({ breakHours: 0.25 + 39 / 60 });
+    // The break's times are logged too, not just its length.
+    expect(answerPatch(last.notify!, 'break', withBreak)).toEqual({
+      breakHours: 0.25 + 39 / 60,
+      breaks: [{ start: '12:02', end: '12:41' }],
+    });
     expect(answerPatch(last.notify!, 'worked', withBreak)).toEqual({});
   });
 
@@ -149,7 +153,11 @@ describe('leaving and coming back', () => {
     // Either way the drive is recorded as a trip, for miles and gas.
     const trips = [{ from: 'Main office', to: 'Client site' }];
     expect(answerPatch(last.notify!, 'worked', working)).toEqual({ travel: 'Yes', trips });
-    expect(answerPatch(last.notify!, 'break', working)).toEqual({ breakHours: 25 / 60, trips });
+    expect(answerPatch(last.notify!, 'break', working)).toEqual({
+      breakHours: 25 / 60,
+      breaks: [{ start: '09:10', end: '09:35' }],
+      trips,
+    });
     // Added to the day's other trips.
     const earlier = of(
       day(TODAY, { start: '08:00', trips: [{ from: 'Vendor', to: 'Main office', miles: 4 }] }),
@@ -182,6 +190,7 @@ describe('leaving and coming back', () => {
     expect(answerPatch(back.notify!, 'break', clockedOut)).toEqual({
       end: '',
       breakHours: 39 / 60,
+      breaks: [{ start: '12:02', end: '12:41' }],
     });
     expect(answerPatch(back.notify!, 'dismiss', clockedOut)).toBeNull();
   });
@@ -290,8 +299,17 @@ describe('a break on top of the usual break', () => {
         { answer: 'worked', label: 'I was working' },
       ],
     });
-    expect(answerPatch(p, 'break', working)).toEqual({ breakHours: 20 / 60 });
-    expect(answerPatch(p, 'extra', working)).toEqual({ breakHours: 0.5 + 20 / 60 });
+    const away = { start: '12:00', end: '12:20' };
+    expect(answerPatch(p, 'break', working)).toEqual({ breakHours: 20 / 60, breaks: [away] });
+    // The usual break is logged at its usual time: noon unless set.
+    expect(answerPatch(p, 'extra', working)).toEqual({
+      breakHours: 0.5 + 20 / 60,
+      breaks: [{ start: '12:00', end: '12:30' }, away],
+    });
+    expect(answerPatch(p, 'extra', working, '11:15')).toEqual({
+      breakHours: 0.5 + 20 / 60,
+      breaks: [{ start: '11:15', end: '11:45' }, away],
+    });
   });
 
   it('is not offered once a break is logged', () => {

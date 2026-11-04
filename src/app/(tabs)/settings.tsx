@@ -17,8 +17,10 @@ import { Screen } from '@/components/Screen';
 import { Labeled, Section, SectionPositions } from '@/components/Section';
 import { SwitchRow } from '@/components/SwitchRow';
 import { TextField } from '@/components/TextField';
+import { TimeField } from '@/components/TimeField';
 import { useToday } from '@/hooks/useToday';
 import { DEFAULT_OVERTIME, useSettings, type ThemeChoice } from '@/store/settings';
+import { formatBreak, usualBreakTime } from '@/timecard/breaks';
 import { addDays, formatShortDate } from '@/timecard/dates';
 import { revisionDetails } from '@/revision';
 import { holidaysBetween } from '@/timecard/holidays';
@@ -153,6 +155,17 @@ export default function SettingsScreen() {
               onChange={(usualBreakMinutes) => update({ usualBreakMinutes })}
             />
           </Labeled>
+          {s.usualBreakMinutes ? (
+            <Labeled
+              label="Usual break starts at"
+              note={`Your usual break: ${formatBreak(usualBreakTime(s.usualBreakStart, s.usualBreakMinutes))}. New break times start here, and "Log + usual break" logs it at this time.`}>
+              <TimeField
+                label="Usual break starts at"
+                value={s.usualBreakStart}
+                onChange={(usualBreakStart) => update({ usualBreakStart })}
+              />
+            </Labeled>
+          ) : null}
         </Section>
 
         <ReminderSection />

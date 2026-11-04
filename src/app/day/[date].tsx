@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
+import { BreaksEditor } from '@/components/BreaksEditor';
 import { Button } from '@/components/Button';
 import { ChoiceChips } from '@/components/ChoiceChips';
 import { NumberField } from '@/components/NumberField';
@@ -38,6 +39,7 @@ import {
   isDateKey,
   minutesToHours,
 } from '@/timecard/dates';
+import { formatBreak, usualBreakTime } from '@/timecard/breaks';
 import { isEmptyEntry, type Travel } from '@/timecard/types';
 import { radius, space, type, useTheme } from '@/theme';
 
@@ -70,7 +72,8 @@ export default function DayScreen() {
   const now = new Date(useNow(30_000));
   const { entries, holidays } = useTimeCard(date ?? today, date ?? today);
   const { updateDay, clearDay } = useEntries.getState();
-  const { requiredHours, timeOffTypes, locations, usualBreakMinutes } = useSettings();
+  const { requiredHours, timeOffTypes, locations, usualBreakMinutes, usualBreakStart } =
+    useSettings();
   const usualBreakHours = minutesToHours(usualBreakMinutes);
   const { armed, confirm } = useSoftConfirm();
   const entry = date ? entryFor(entries, date) : null;
@@ -231,7 +234,8 @@ export default function DayScreen() {
           ) : null}
           {usingUsualBreak ? (
             <AppText variant="caption" tone="muted">
-              Includes your usual {usualBreakMinutes} min break
+              Includes your usual {usualBreakMinutes} min break (
+              {formatBreak(usualBreakTime(usualBreakStart, usualBreakMinutes))})
             </AppText>
           ) : null}
         </View>
@@ -293,6 +297,10 @@ export default function DayScreen() {
           />
         </Field>
       </View>
+
+      <Field label="Break times">
+        <BreaksEditor entry={entry} onChange={update} />
+      </Field>
 
       <Field label="Time off type">
         <ChoiceChips

@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { formatBreak } from '@/timecard/breaks';
 import {
   hoursLeft,
   hoursSoFar,
@@ -105,6 +106,10 @@ export function DayRow({
     else minText = `Min out ${formatClock(min)}`;
   }
 
+  const breaksText = entry.breaks?.length
+    ? `Break ${entry.breaks.map(formatBreak).join(', ')}`
+    : '';
+
   const name = DAY_NAMES[weekdayIndex(date)];
   const a11y = [
     `${name}, ${formatShortDate(date)}${isToday ? ', today' : ''}`,
@@ -113,6 +118,7 @@ export function DayRow({
     working ? `${formatHours(soFar)} hours so far` : '',
     empty || working ? '' : `${formatHours(total)} hours`,
     minText.replace('✓ ', ''),
+    breaksText,
     entry.comment ? `Comment: ${entry.comment}` : '',
     ...warnings.map((w) => `Check: ${w}`),
   ]
@@ -156,6 +162,11 @@ export function DayRow({
         {minText ? (
           <AppText variant="caption" tone={minTone}>
             {minText}
+          </AppText>
+        ) : null}
+        {breaksText ? (
+          <AppText variant="caption" tone="muted">
+            {breaksText}
           </AppText>
         ) : null}
         {entry.comment ? (

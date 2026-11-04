@@ -109,6 +109,24 @@ describe('day editor', () => {
     expect(await screen.findByRole('header', { name: 'Tuesday, Jan 8, 2030' })).toBeOnTheScreen();
   });
 
+  it("logs a break's times, starting from the usual break, and removes it", async () => {
+    useSettings.getState().update({ usualBreakMinutes: 30, usualBreakStart: '11:30' });
+    await openDay();
+    // The new break starts filled in with the usual break: 11:30 – 12:00.
+    await pickTime(/^Break end/, at(11, 54));
+    await fireEvent.press(screen.getByRole('button', { name: 'Add break' }));
+    expect(useEntries.getState().entries['2030-01-07']).toMatchObject({
+      breaks: [{ start: '11:30', end: '11:54' }],
+      breakHours: 24 / 60,
+    });
+    expect(screen.getByText('11:30 AM – 11:54 AM')).toBeOnTheScreen();
+
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Remove the break 11:30 AM – 11:54 AM' }),
+    );
+    expect(useEntries.getState().entries['2030-01-07']).toBeUndefined();
+  });
+
   it('handles a bad date in the link', async () => {
     await renderRouter({ 'day/[date]': DayScreen }, { initialUrl: '/day/2030-02-31' });
     expect(await screen.findByText("That day couldn't be found")).toBeOnTheScreen();

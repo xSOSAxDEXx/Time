@@ -71,6 +71,10 @@ Fields for each date:
 - Big **Clock in now** / **Clock out now** buttons for today. If a time is
   already set, ask before replacing it.
 - Every field can also be edited by hand for any date.
+- **Break times** (owner request, 4 Nov 2026): a day can list when each
+  break was (11:30 AM – 11:54 AM). Adding one adds its length to Break;
+  removing it takes it off. Arrive and leave logs the time away this way.
+  A new break starts filled in with the usual break's time.
 
 ### 3.2 Calculations (must match the spreadsheet exactly)
 
@@ -98,7 +102,10 @@ These came from the owner's Excel formulas. Keep them in pure functions
 Owner-approved additions (formula review, 2 Nov 2026):
 
 - **Usual break** (Settings, minutes, default off): while clocked in with
-  no break logged yet, min clock out adds the usual break.
+  no break logged yet, min clock out adds the usual break. It **starts at**
+  a set time (default 12:00 PM, owner request 4 Nov 2026), so it runs from
+  then for its length, e.g. 12:00 – 12:30 PM; "Log + usual break" logs it
+  at that time.
 - **Hours so far** and **time left** to min clock out while clocked in.
 - **Odd-day checks**: a time off type with no hours, hours with no type,
   still clocked in from before yesterday, a shift over 16 hours, a break

@@ -208,7 +208,10 @@ the answers you already gave.
 When you have a usual break set (Settings → Work day) and no break is
 logged yet, "Were you on a break?" has a third answer that logs the time
 away **on top of** the usual break, for an extra break. "Log break" alone
-replaces the usual break with the time away. The pure rules are in
+replaces the usual break with the time away. Either way the break's
+times are logged (e.g. 11:30 AM – 11:54 AM), and the usual break is logged
+at its start time (Settings → Work day, 12:00 PM unless changed). The day
+editor's **Break times** adds or removes them by hand. The pure rules are in
 `src/geofence/engine.ts`; the background task is `src/geofence/task.ts`.
 
 Limits, honestly:

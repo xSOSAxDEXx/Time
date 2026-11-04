@@ -19,6 +19,7 @@ describe("Punch'd backups", () => {
         start: '08:00',
         end: '16:30',
         breakHours: 0.5,
+        breaks: [{ start: '11:30', end: '12:00' }],
         trips: [
           { from: 'Main office', to: 'Client site' },
           { from: 'Client site', to: 'Main office', miles: 21.5 },
@@ -38,6 +39,7 @@ describe("Punch'd backups", () => {
       name: 'Sample Person',
       hourlyRate: 25,
       usualBreakMinutes: 30,
+      usualBreakStart: '11:30',
       geofencing: true,
       places: [
         { location: 'Main office', latitude: 10.002, longitude: 20.002, radiusMeters: 150 },
@@ -106,6 +108,7 @@ describe("Punch'd backups", () => {
         {
           ...day('2030-01-08', { start: '08:00' }),
           trips: [{ from: 'Main office', to: 'Vendor', miles: -3 }, { from: '', to: 'Vendor' }, 7],
+          breaks: [{ start: '11:30', end: '11:54' }, { start: '25:00', end: '11:00' }, 'noon'],
         },
       ],
       settings: {
@@ -143,6 +146,8 @@ describe("Punch'd backups", () => {
     const r = parsed(JSON.stringify(raw));
     // A trip with bad miles keeps the trip without them; the rest are dropped.
     expect(r.entries['2030-01-08'].trips).toEqual([{ from: 'Main office', to: 'Vendor' }]);
+    // Break times that aren't real times are dropped.
+    expect(r.entries['2030-01-08'].breaks).toEqual([{ start: '11:30', end: '11:54' }]);
     expect(r.repairedDays).toBe(1);
     expect(r.settings.finance).toMatchObject({
       federalPct: 0,

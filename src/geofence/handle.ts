@@ -63,7 +63,7 @@ export async function handleGeoEvent(event: GeoEvent): Promise<void> {
 
 /** Answers a question (from its card or its notification). Unknown or stale ones do nothing. */
 export async function answerGeoPrompt(id: string, answer: GeoAnswer, now = Date.now()) {
-  await loaded(useEntries, useGeo);
+  await loaded(useEntries, useGeo, useSettings);
   const geo = useGeo.getState();
   const { entries, updateDay } = useEntries.getState();
   const prompt = findPrompt(geo, entries, id, now);
@@ -74,7 +74,7 @@ export async function answerGeoPrompt(id: string, answer: GeoAnswer, now = Date.
     );
     return;
   }
-  const patch = answerPatch(prompt, answer, entries);
+  const patch = answerPatch(prompt, answer, entries, useSettings.getState().usualBreakStart);
   if (patch) updateDay(prompt.date, patch);
   geo.set(afterAnswer(geo, prompt, answer));
   await quietly(dismissPromptNotification(prompt));

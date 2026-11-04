@@ -13,10 +13,11 @@
  * circle the phone can briefly think you're inside, and leaving again that
  * soon carries on the same trip (same leave time, same answers).
  */
+import { addBreak, DEFAULT_USUAL_BREAK_START, usualBreakTime } from '@/timecard/breaks';
 import { isInProgress } from '@/timecard/calc';
 import { clockOutDate } from '@/timecard/clock';
 import { clockTimeOf, minutesToHours, toKey } from '@/timecard/dates';
-import type { DateKey, Entries, Entry } from '@/timecard/types';
+import type { ClockTime, DateKey, Entries, Entry } from '@/timecard/types';
 
 import type { LatLng } from './outline';
 
@@ -302,6 +303,8 @@ export function answerPatch(
   p: GeoPrompt,
   answer: GeoAnswer,
   entries: Entries,
+  /** When the usual break starts, for "Log + usual break". */
+  usualStart: ClockTime = DEFAULT_USUAL_BREAK_START,
 ): Partial<Omit<Entry, 'date'>> | null {
   if (!stillValid(p, entries) || answer === 'dismiss') return null;
   const e = entries[p.date];
@@ -321,11 +324,22 @@ export function answerPatch(
         p.kind === 'travel' && (answer === 'worked' || answer === 'break' || answer === 'extra')
           ? { trips: [...(e.trips ?? []), { from: p.fromPlace, to: p.toPlace }] }
           : {};
-      if (answer === 'break') return { ...reopen, ...trip, breakHours: e.breakHours + away };
-      // On top of the usual break (only while no other break is logged).
+      // The time away, as a break time (11:30–11:54), not just its length.
+      const awayTime = {
+        start: clockTimeOf(new Date(p.from)),
+        end: clockTimeOf(new Date(p.to)),
+      };
+      const withAway = (day: Entry) => ({
+        breaks: [...(day.breaks ?? []), awayTime].sort((a, b) => a.start.localeCompare(b.start)),
+        breakHours: day.breakHours + away,
+      });
+      if (answer === 'break') return { ...reopen, ...trip, ...withAway(e) };
+      // On top of the usual break (only while no other break is logged),
+      // which is logged at its usual time.
       if (answer === 'extra') {
         const usual = p.kind === 'break' && !e.breakHours ? (p.usualHours ?? 0) : 0;
-        return { ...reopen, ...trip, breakHours: e.breakHours + usual + away };
+        const day = usual ? { ...e, ...addBreak(e, usualBreakTime(usualStart, usual * 60)) } : e;
+        return { ...reopen, ...trip, ...withAway(day), breakHours: e.breakHours + usual + away };
       }
       if (answer === 'worked')
         return { ...reopen, ...trip, ...(p.kind === 'travel' ? { travel: 'Yes' as const } : {}) };
