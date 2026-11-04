@@ -8,6 +8,10 @@ account, no analytics, no personal data. The full product brief and build
 order live in [`CLAUDE.md`](./CLAUDE.md); progress and decisions are in
 [`docs/PROGRESS.md`](./docs/PROGRESS.md).
 
+**Docs:** [user guide](docs/user-guide.md) (how to use the app) ·
+[architecture](docs/architecture.md) (how it's built) ·
+[progress notes](docs/PROGRESS.md) · [Android testing](docs/android-testing.md)
+
 ## Getting started
 
 ```bash
@@ -68,7 +72,7 @@ uses the browser's file picker (`src/backup/fileIO.web.ts`).
 
 Settings → Backup and export.
 
-- **Back up** saves one JSON file (`clocked-backup-YYYY-MM-DD.json`) with
+- **Back up** saves one JSON file (`punchd-backup-YYYY-MM-DD.json`) with
   every logged day and every setting, including company holidays and pay.
   On the phone it opens the share sheet; on the web it downloads.
 - **Restore** opens a file, says what's in it, and asks before replacing

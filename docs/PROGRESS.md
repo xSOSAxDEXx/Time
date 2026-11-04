@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 4 Nov 2026 (break times)._
+_Last updated: 4 Nov 2026 (user guide and architecture doc)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -117,6 +117,15 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
   screen readers.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
+
+## Docs (4 Nov 2026, owner request)
+
+- `docs/user-guide.md`: how to install and use every feature, for the
+  owner and anyone they share the app with. Keep it in step with the UI's
+  wording when features change.
+- `docs/architecture.md`: layers, data, main flows (with Mermaid
+  diagrams), build and release, decisions, where to change things.
+- README links both.
 
 ## Break times (4 Nov 2026, owner request)
 
