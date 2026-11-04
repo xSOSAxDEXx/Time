@@ -43,6 +43,8 @@ import {
 
 export const BACKUP_FORMAT = 'clocked-backup';
 export const BACKUP_VERSION = 1;
+/** A file of just arrive-and-leave places, to share with coworkers (places.ts). */
+export const PLACES_FORMAT = 'punchd-places';
 
 export type Backup = {
   format: typeof BACKUP_FORMAT;
@@ -399,6 +401,41 @@ function readOvertime(v: unknown): OvertimeRule | null {
   return null;
 }
 
+/** Places with a circle (and maybe an outline); unreadable ones are left out. */
+export function readPlaces(v: unknown): GeoPlace[] | null {
+  return Array.isArray(v)
+    ? v
+        .slice(0, MAX_LIST)
+        .filter(
+          (p): p is GeoPlace =>
+            isObject(p) &&
+            isString(p.location) &&
+            !!p.location.trim() &&
+            inRange(p.latitude, -90, 90) &&
+            inRange(p.longitude, -180, 180) &&
+            inRange(p.radiusMeters, 50, 5000),
+        )
+        .map((p) => {
+          const outline = Array.isArray(p.outline)
+            ? p.outline
+                .slice(0, MAX_CORNERS)
+                .filter(
+                  (c): c is LatLng =>
+                    isObject(c) && inRange(c.latitude, -90, 90) && inRange(c.longitude, -180, 180),
+                )
+                .map((c) => ({ latitude: c.latitude, longitude: c.longitude }))
+            : [];
+          return {
+            location: p.location.slice(0, MAX_TEXT),
+            latitude: p.latitude,
+            longitude: p.longitude,
+            radiusMeters: p.radiusMeters,
+            ...(outline.length ? { outline } : {}),
+          };
+        })
+    : null;
+}
+
 /** Each setting's check: the value to keep, or null when it can't be read. */
 const SETTING_READERS: { [K in keyof Settings]: (v: unknown) => Settings[K] | null } = {
   name: (v) => (isString(v) ? v.slice(0, MAX_TEXT) : null),
@@ -431,40 +468,7 @@ const SETTING_READERS: { [K in keyof Settings]: (v: unknown) => Settings[K] | nu
       : null,
   autoHolidays: (v) => (typeof v === 'boolean' ? v : null),
   geofencing: (v) => (typeof v === 'boolean' ? v : null),
-  places: (v) =>
-    Array.isArray(v)
-      ? v
-          .slice(0, MAX_LIST)
-          .filter(
-            (p): p is GeoPlace =>
-              isObject(p) &&
-              isString(p.location) &&
-              !!p.location.trim() &&
-              inRange(p.latitude, -90, 90) &&
-              inRange(p.longitude, -180, 180) &&
-              inRange(p.radiusMeters, 50, 5000),
-          )
-          .map((p) => {
-            const outline = Array.isArray(p.outline)
-              ? p.outline
-                  .slice(0, MAX_CORNERS)
-                  .filter(
-                    (c): c is LatLng =>
-                      isObject(c) &&
-                      inRange(c.latitude, -90, 90) &&
-                      inRange(c.longitude, -180, 180),
-                  )
-                  .map((c) => ({ latitude: c.latitude, longitude: c.longitude }))
-              : [];
-            return {
-              location: p.location.slice(0, MAX_TEXT),
-              latitude: p.latitude,
-              longitude: p.longitude,
-              radiusMeters: p.radiusMeters,
-              ...(outline.length ? { outline } : {}),
-            };
-          })
-      : null,
+  places: readPlaces,
   finance: readFinance,
   driving: readDriving,
   partner: readPartner,
@@ -511,6 +515,14 @@ export function parseBackup(text: string): ParseResult {
     return { ok: false, message: NOT_A_BACKUP };
   }
   if (!isObject(data)) return { ok: false, message: NOT_A_BACKUP };
+
+  if (data.format === PLACES_FORMAT) {
+    return {
+      ok: false,
+      message:
+        'This is a places file, not a backup. Add its places from Settings → Arrive and leave → Import places.',
+    };
+  }
 
   if (data.format === BACKUP_FORMAT) {
     if (typeof data.version !== 'number' || data.version > BACKUP_VERSION) {

@@ -118,6 +118,18 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
 
+## Share places (4 Nov 2026, owner request)
+
+- Settings → Arrive and leave → **Share places** saves
+  `punchd-places-YYYY-MM-DD.json`: format `punchd-places`, only the places
+  that are set (names, circles, outlines). No hours, pay or other settings.
+- **Import places** reads one, says what's new / the same / set differently,
+  then adds new places (and Locations), keeping the person's own versions
+  unless they choose "Add and replace mine". Logged days and other settings
+  are untouched. Names match the phone's Locations in any letter case.
+- Restore points a places file to Import places instead of failing
+  vaguely. Logic in `src/backup/places.ts`, tested; UI `PlacesShare.tsx`.
+
 ## Docs (4 Nov 2026, owner request)
 
 - `docs/user-guide.md`: how to install and use every feature, for the

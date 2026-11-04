@@ -22,6 +22,7 @@ import { Button } from './Button';
 import { ChoiceChips } from './ChoiceChips';
 import { AddItem } from './ListEditor';
 import { PlaceOutline } from './PlaceOutline';
+import { PlacesShare } from './PlacesShare';
 import { Section } from './Section';
 import { SwitchRow } from './SwitchRow';
 
@@ -314,6 +315,7 @@ export function GeoSection() {
           </AppText>
         </View>
       ) : null}
+      <PlacesShare />
     </Section>
   );
 }

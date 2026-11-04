@@ -254,6 +254,11 @@ closed; iPhone uses the web app). Off by default.
 - A time that's already set is never overwritten. Location stays on the
   phone; only the circles are saved (and included in backups). No location
   history.
+- **Share places** (owner request, 4 Nov 2026): a file with just the
+  places (names, circles, outlines), so coworkers can use the same fences.
+  **Import places** adds a file's places without touching logged days or
+  other settings; places already set differently are kept unless the
+  person chooses to replace them.
 - Needs location access "all the time" and notifications. Uses
   `expo-location` and `expo-task-manager`.
 

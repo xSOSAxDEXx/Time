@@ -205,6 +205,58 @@ describe('arrive and leave: Settings', () => {
     expect(screen.getByText(/Choose “Allow all the time”/)).toBeOnTheScreen();
   });
 
+  it("shares places to a file and imports a coworker's, keeping logged days", async () => {
+    const fs = jest.requireMock('expo-file-system') as {
+      __files: Map<string, string>;
+      __setNextPick: (t: string | null) => void;
+    };
+    const sharing = jest.requireMock('expo-sharing') as { __shared: unknown[][] };
+    const office = { location: 'Main office', latitude: 40.1, longitude: -75.2, radiusMeters: 150 };
+    useSettings.getState().update({ hourlyRate: 20, places: [office] });
+    useEntries.setState({
+      entries: { '2030-01-09': { ...emptyEntry('2030-01-09'), start: '08:00' } },
+    });
+    await renderRouter(routes, { initialUrl: '/settings' });
+    await screen.findByRole('header', { name: 'Arrive and leave' });
+
+    await press('Share places');
+    const [uri] = sharing.__shared.at(-1) as [string];
+    expect(uri).toBe('file:///cache/punchd-places-2030-01-09.json');
+    const shared = JSON.parse(fs.__files.get(uri) ?? '');
+    // Just the places: nothing about hours or pay.
+    expect(Object.keys(shared).sort()).toEqual(['exportedAt', 'format', 'places', 'version']);
+    expect(shared.places).toEqual([office]);
+    expect(screen.getByText(/Places file made with 1 place\./)).toBeOnTheScreen();
+
+    // A coworker's file: their own Main office, and a new place.
+    const depot = { location: 'Depot', latitude: 40.3, longitude: -75.4, radiusMeters: 250 };
+    fs.__setNextPick(
+      JSON.stringify({ ...shared, places: [{ ...office, radiusMeters: 500 }, depot] }),
+    );
+    await press('Import places');
+    expect(
+      screen.getByText(
+        'This file has 2 places. New to this phone: Depot. Set differently on this phone: Main office.',
+      ),
+    ).toBeOnTheScreen();
+    await press('Add the new places and keep my own versions');
+    expect(useSettings.getState().places).toEqual([office, depot]);
+    expect(useSettings.getState().locations).toContain('Depot');
+    expect(useSettings.getState().hourlyRate).toBe(20);
+    expect(useEntries.getState().entries['2030-01-09'].start).toBe('08:00');
+    expect(
+      screen.getByText(
+        'Added 1 place. Kept your own version of Main office. Turn on “Ask when I arrive and leave” to use them.',
+      ),
+    ).toBeOnTheScreen();
+
+    // Importing it again offers to replace mine.
+    fs.__setNextPick(JSON.stringify({ ...shared, places: [{ ...office, radiusMeters: 500 }] }));
+    await press('Import places');
+    await press('Add the places and replace my own versions');
+    expect(useSettings.getState().places).toEqual([depot, { ...office, radiusMeters: 500 }]);
+  });
+
   it('is explained as Android-only on the web', async () => {
     jest.replaceProperty(Platform, 'OS', 'web');
     await renderRouter(routes, { initialUrl: '/settings' });

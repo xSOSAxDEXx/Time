@@ -220,6 +220,7 @@ Running the Android workflow again cancels one already in progress.
 | Pay or overtime                     | `timecard/pay.ts`                                                                                                   |
 | Money, bills, partner, gas          | `timecard/money.ts`, `app/(tabs)/money.tsx`                                                                         |
 | What arrive and leave asks, or when | `geofence/engine.ts`, wording in `geofence/text.ts`                                                                 |
+| Share/import places                 | `backup/places.ts` (file, merge), `components/PlacesShare.tsx`                                                      |
 | A new setting                       | `store/settings.ts` (type + default), a settings section, `backup/format.ts` reader, a round-trip test              |
 | A new day field                     | `timecard/types.ts` (+ `isEmptyEntry`), the day editor, `backup/format.ts` reader, CSV only if the HTML page had it |
 | Web-only behaviour                  | the `*.web.ts(x)` twin of the file                                                                                  |

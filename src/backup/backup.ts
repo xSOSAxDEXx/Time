@@ -1,3 +1,4 @@
+import type { GeoPlace } from '@/geofence/engine';
 import { useEntries } from '@/store/entries';
 import { pickSettings, useSettings } from '@/store/settings';
 import { loggedDates, timeCard } from '@/timecard/calc';
@@ -6,6 +7,15 @@ import { addDays, formatShortDate, fromKey, mondayOf, toKey } from '@/timecard/d
 
 import { pickBackupText, saveFile } from './fileIO';
 import { backupFileName, buildBackup, parseBackup, type ParsedBackup } from './format';
+import {
+  buildPlacesFile,
+  mergePlaces,
+  parsePlaces,
+  placesFileName,
+  planImport,
+  sharablePlaces,
+  type ImportPlan,
+} from './places';
 
 export type Outcome = { ok: boolean; message: string };
 
@@ -112,4 +122,73 @@ export function applyRestore(b: ParsedBackup): Outcome {
     ok: true,
     message: [`Restored ${days} ${days === 1 ? 'day' : 'days'}.`, ...notes].join(' '),
   };
+}
+
+// ---------- places to share with coworkers (places.ts) ----------
+
+/** Saves a file of just the places set for arrive and leave. */
+export async function sharePlaces(now = new Date()): Promise<Outcome> {
+  const { places, locations } = useSettings.getState();
+  const set = sharablePlaces(places, locations);
+  if (!set.length)
+    return { ok: false, message: 'No places are set yet, so there is nothing to share.' };
+  const result = await saveFile(
+    placesFileName(now),
+    JSON.stringify(buildPlacesFile(set, now), null, 1),
+    'application/json',
+    "Share your Punch'd places",
+  );
+  if (result === 'unavailable') return CANT_SHARE;
+  return {
+    ok: true,
+    message: `Places file made with ${set.length} ${set.length === 1 ? 'place' : 'places'}. It has only your places: no hours, pay or other settings.`,
+  };
+}
+
+export type PlacesChoice = { ok: true; places: GeoPlace[]; plan: ImportPlan } | Outcome;
+
+/** Asks for a places file and works out what it would add. Null if cancelled. */
+export async function choosePlacesFile(): Promise<PlacesChoice | null> {
+  let text: string | null;
+  try {
+    text = await pickBackupText();
+  } catch {
+    return { ok: false, message: "That file couldn't be opened. Please try again." };
+  }
+  if (text == null) return null;
+  const parsed = parsePlaces(text);
+  if (!parsed.ok) return parsed;
+  const { places, locations } = useSettings.getState();
+  return {
+    ok: true,
+    places: parsed.places,
+    plan: planImport({ places, locations }, parsed.places),
+  };
+}
+
+/** Adds the file's places. Logged days and other settings stay as they are. */
+export function applyPlaces(incoming: GeoPlace[], replaceMine: boolean): Outcome {
+  const { places, locations, update } = useSettings.getState();
+  const plan = planImport({ places, locations }, incoming);
+  update(mergePlaces({ places, locations }, incoming, replaceMine));
+  const added = plan.fresh.length + (replaceMine ? plan.differ.length : 0);
+  const kept = replaceMine ? 0 : plan.differ.length;
+  return {
+    ok: true,
+    message: [
+      added ? `Added ${added} ${added === 1 ? 'place' : 'places'}.` : 'Nothing new to add.',
+      kept
+        ? `Kept your own ${kept === 1 ? 'version' : 'versions'} of ${listNames(plan.differ)}.`
+        : '',
+    ]
+      .filter(Boolean)
+      .join(' '),
+  };
+}
+
+/** "A", "A and B", "A, B and C". */
+export function listNames(names: string[]): string {
+  return names.length < 2
+    ? (names[0] ?? '')
+    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }

@@ -195,6 +195,12 @@ you're inside each place right now. There's no map inside the app: that
 would need a Google Cloud account with billing and an API key. The maths is
 in `src/geofence/outline.ts`.
 
+**Share places** saves a file of just your places (names, circles and
+outlines; nothing else) for coworkers, and **Import places** adds a
+coworker's places without touching your logged days or other settings. A
+place you've already set differently is kept unless you choose to replace
+it (`src/backup/places.ts`).
+
 | What happened                           | Question                                                                  |
 | --------------------------------------- | ------------------------------------------------------------------------- |
 | Arrived, nothing started today          | Clock in? (at the arrival time)                                           |

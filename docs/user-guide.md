@@ -190,6 +190,21 @@ and that dashed circle, so a mistyped corner stands out.
 
 **Check where I am** tells you, right now, whether you're inside each place.
 
+### Share places with coworkers
+
+At the bottom of Arrive and leave:
+
+- **Share places** makes a file (`punchd-places-…json`) with just your
+  places and their outlines: no hours, pay or other settings. Send it
+  however you like (text, email, Drive).
+- **Import places** adds the places from a coworker's file. It tells you
+  what's new before adding anything. New places join your Locations list;
+  if you've already set one differently, choose **Add new, keep mine** or
+  **Add and replace mine**. Your logged days and settings stay as they
+  are. Then turn on **Ask when I arrive and leave** if it isn't on.
+
+Don't use **Restore** for a places file: Restore replaces everything.
+
 ### What it asks
 
 | What happened                                    | Question                                                                                           |
