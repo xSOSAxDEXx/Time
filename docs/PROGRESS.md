@@ -146,6 +146,9 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
   still in memory.
 - Fix: a new entry file, `index.ts` (package.json `main`), defines the task
   first, then starts Expo Router. A test checks the entry defines it.
+- Phone test, 4 Nov 2026 (revision 24, test build 12): with the app
+  closed, arriving at work brought "Clock in?" at the right time and
+  answering it logged the clock in. Break and leaving checks still to come.
 
 ## Punch'd, partner and commute (3 Nov 2026, owner request)
 
