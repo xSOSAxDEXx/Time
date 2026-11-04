@@ -315,6 +315,9 @@ HTML page.
   their data: Android package `com.clocked.app`, URL scheme, storage keys,
   background task and notification IDs, and the backup format
   (`clocked-backup`). Only what people see says Punch'd.
+- **Revision number** (owner request, 4 Nov 2026): the Week screen shows
+  "Revision N" (commits on main, set by the GitHub workflows), and Settings
+  shows the Android test build, build date and commit.
 - Logo: **gold brass knuckles smashing a cracked alarm clock** on a blue
   starburst (the owner's artwork, `assets/brand/logo-source.jpg`). Every
   icon size comes from it, like Luna (`npm run icons`).

@@ -20,6 +20,7 @@ import { TextField } from '@/components/TextField';
 import { useToday } from '@/hooks/useToday';
 import { DEFAULT_OVERTIME, useSettings, type ThemeChoice } from '@/store/settings';
 import { addDays, formatShortDate } from '@/timecard/dates';
+import { revisionDetails } from '@/revision';
 import { holidaysBetween } from '@/timecard/holidays';
 import { MIN_TAP, radius, space, useTheme } from '@/theme';
 
@@ -295,6 +296,9 @@ export default function SettingsScreen() {
           Your time card is saved on this phone only. Nothing is sent anywhere.
         </AppText>
       )}
+      <AppText variant="caption" tone="muted">
+        Punch&apos;d {revisionDetails()}
+      </AppText>
     </Screen>
   );
 }

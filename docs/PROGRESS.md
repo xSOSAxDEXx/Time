@@ -3,7 +3,7 @@
 Where the build is, what's been decided, and what's waiting. Read this with
 `CLAUDE.md` (the brief) at the start of a new session.
 
-_Last updated: 4 Nov 2026 (arrive and leave with the app closed)._
+_Last updated: 4 Nov 2026 (revision number shown in the app)._
 
 ## Build order status (CLAUDE.md §6)
 
@@ -117,6 +117,15 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
   screen readers.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
+
+## Revision number (4 Nov 2026, owner request)
+
+- The Week screen shows "Revision N" under the name; the bottom of Settings
+  shows the details (Android test build, build date, commit).
+- N is the number of commits on main (`git rev-list --count HEAD`), set by
+  both GitHub workflows as `EXPO_PUBLIC_*` variables (`src/revision.ts`).
+  The Android app and web app built from the same code show the same N.
+  Builds made elsewhere show "Revision dev".
 
 ## Arrive and leave with the app closed (4 Nov 2026, owner report)
 

@@ -25,6 +25,15 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history, to count the revision.
+          fetch-depth: 0
+
+      - name: Revision shown in the app
+        run: |
+          echo "EXPO_PUBLIC_REVISION=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_COMMIT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_BUILT=$(TZ=America/New_York date +%Y-%m-%d)" >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@v4
         with:

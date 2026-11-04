@@ -22,6 +22,7 @@ import { showsPay, weekPay } from '@/timecard/pay';
 import { dayWarnings, entryFor, weekStats } from '@/timecard/calc';
 import { addDays, minutesToHours, weekDates } from '@/timecard/dates';
 import { space, WIDE_BREAKPOINT } from '@/theme';
+import { revisionLabel } from '@/revision';
 
 const logo = require('@/assets/brand/logo-mark.png');
 
@@ -59,6 +60,9 @@ export default function WeekScreen() {
             Punch&apos;d
           </AppText>
           {who ? <AppText tone="muted">{who}</AppText> : null}
+          <AppText variant="caption" tone="muted">
+            {revisionLabel()}
+          </AppText>
         </View>
       </View>
       {ready ? (
