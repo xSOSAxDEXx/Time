@@ -9,6 +9,7 @@ it('the entry file defines the arrive-and-leave task before any screen loads', (
     .__tasks;
   tasks.clear();
   jest.isolateModules(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- loads the entry file fresh
     require('../../../index');
   });
   expect(tasks.has(GEOFENCE_TASK)).toBe(true);

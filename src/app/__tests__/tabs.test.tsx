@@ -19,7 +19,8 @@ describe('tab navigation', () => {
   it('opens on the week screen with all four tabs available', async () => {
     await renderRouter(routes, { initialUrl: '/' });
     expect(await screen.findByRole('header', { name: "Punch'd" })).toBeOnTheScreen();
-    expect(screen.getByText('Revision dev')).toBeOnTheScreen();
+    // "Revision dev" here; GitHub's builds set the number before testing.
+    expect(screen.getByText(/^Revision (dev|\d+)$/)).toBeOnTheScreen();
     expect(screen.getByLabelText('Week, log your time')).toBeOnTheScreen();
     expect(screen.getByLabelText('Summary and all weeks')).toBeOnTheScreen();
     expect(screen.getByLabelText('Charts of hours per day and week')).toBeOnTheScreen();
