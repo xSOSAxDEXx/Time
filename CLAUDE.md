@@ -287,8 +287,9 @@ Settings → Finance and bills, and a **Money** tab. Needs an hourly rate.
   Gas comes off "left over"; reimbursement is shown on its own (not every
   employer pays it).
 - **Daily commute** (owner request, 3 Nov 2026): miles to work and back,
-  counted 5 days a week (5/7 of every day in the range) for gas. Not
-  reimbursed.
+  counted for gas on each day with a start time (owner-approved change, 4
+  Nov 2026: was 5 days a week); remote days, time off and holidays don't
+  count. Not reimbursed.
 - Money tab: miles, drives, gas and reimbursement for the month and year.
   Drives and routes are in backups; the CSV keeps the HTML page's columns.
 

@@ -297,7 +297,7 @@ export default function SettingsScreen() {
         </AppText>
       )}
       <AppText variant="caption" tone="muted">
-        Punch&apos;d {revisionDetails()}
+        Punch&apos;d · {revisionDetails()}
       </AppText>
     </Screen>
   );

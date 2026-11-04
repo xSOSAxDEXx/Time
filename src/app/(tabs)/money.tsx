@@ -26,6 +26,7 @@ import {
   yearMoney,
   type DrivingTotals,
   type Money,
+  type MonthMoney,
 } from '@/timecard/money';
 import { formatMoney, showsPay } from '@/timecard/pay';
 import { radius, space, useTheme, WIDE_BREAKPOINT } from '@/theme';
@@ -50,6 +51,8 @@ const offNote = (m: Money) =>
   `Taxes ${formatDollars(m.taxes)} · deductions ${formatDollars(m.deductions)}`;
 const billsNote = (m: Money) =>
   `Bills ${formatDollars(m.bills + m.partnerBills)}${m.gas ? ` · gas ${formatDollars(m.gas)}` : ''}`;
+/** A month's miles: drives and the daily commute. */
+const monthMiles = (m: MonthMoney) => (m.driving ? m.driving.miles + m.driving.commuteMiles : 0);
 /** All the bills and gas that come out of take-home. */
 const spending = (m: Money) => m.bills + m.partnerBills + m.gas;
 
@@ -157,7 +160,9 @@ export default function MoneyScreen() {
             value={formatMiles(d.miles + d.commuteMiles)}
             note={[
               d.trips ? `${d.trips} ${d.trips === 1 ? 'drive' : 'drives'}` : '',
-              d.commuteMiles ? `commute ${formatMiles(d.commuteMiles)}` : '',
+              d.commuteMiles
+                ? `commute ${formatMiles(d.commuteMiles)} (${d.commuteDays} ${d.commuteDays === 1 ? 'day' : 'days'})`
+                : '',
               d.unknownTrips ? `${d.unknownTrips} without miles` : '',
             ]
               .filter(Boolean)
@@ -308,13 +313,13 @@ export default function MoneyScreen() {
             <View
               key={m.month}
               accessible
-              accessibilityLabel={`${MONTHS[i]}: gross ${formatDollars(m.money.gross)}, take-home ${formatDollars(m.money.takeHome)}, left over ${formatDollars(m.money.leftOver)}${m.driving?.trips ? `, ${formatMiles(m.driving.miles)}` : ''}`}
+              accessibilityLabel={`${MONTHS[i]}: gross ${formatDollars(m.money.gross)}, take-home ${formatDollars(m.money.takeHome)}, ${leftLabel.toLowerCase()} ${formatDollars(m.money.leftOver)}${monthMiles(m) ? `, ${formatMiles(monthMiles(m))}` : ''}`}
               style={[styles.tableRow, { borderColor: colors.border }]}>
               <View style={styles.monthCol}>
                 <AppText variant="bodyStrong">{MONTHS[i].slice(0, 3)}</AppText>
-                {m.driving?.trips ? (
+                {monthMiles(m) ? (
                   <AppText variant="caption" tone="muted">
-                    {formatMiles(m.driving.miles)}
+                    {formatMiles(monthMiles(m))}
                   </AppText>
                 ) : null}
               </View>
@@ -340,7 +345,7 @@ export default function MoneyScreen() {
 
       <AppText variant="caption" tone="muted">
         {MONEY_NOTE} Bills and fixed deductions are spread evenly over the year; the current month
-        counts only the days so far. Gas includes your daily commute, 5 days a week.
+        counts only the days so far. Gas includes your daily commute on each day you clocked in.
         {withPartner ? ` Left over includes ${who}'s take-home and bills.` : ''} Set rates and bills
         in Settings → Finance and bills, Spouse or partner, and Driving.
       </AppText>

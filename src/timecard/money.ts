@@ -11,7 +11,7 @@
  *   ones (not retirement) also lower the pay Social Security + Medicare is on.
  * - Take-home = gross − taxes − every deduction.
  * - Left over = take-home − bills − gas for the month's trips and daily
- *   commute (5 days a week). With a partner included, their take-home is
+ *   commute (each day with a start time). With a partner included, their take-home is
  *   added and their bills taken off too.
  * - Amounts per paycheck, week or year are spread evenly over the months.
  *   A month only partly covered (before the first logged day, or after
@@ -72,8 +72,10 @@ export type DrivingTotals = {
   trips: number;
   /** Miles of logged trips (not the commute). */
   miles: number;
-  /** Daily commute miles for the days, at 5 days a week. */
+  /** Daily commute miles: the commute for each day with a start time. */
   commuteMiles: number;
+  /** Days with a start time (days the commute counts). */
+  commuteDays: number;
   /** Trips with no miles yet (no route saved). */
   unknownTrips: number;
   /** Gas for the trips and the commute. Null when MPG or gas price isn't set. */
@@ -81,9 +83,6 @@ export type DrivingTotals = {
   /** For the trips only. Null when no reimbursement rate is set. */
   reimbursement: number | null;
 };
-
-/** Commute days in a week: the daily commute counts 5 days out of 7. */
-export const COMMUTE_DAYS_PER_WEEK = 5;
 
 /** Trips, miles, commute, gas and reimbursement for the days from `from` to `to`. */
 export function drivingTotals(
@@ -95,8 +94,12 @@ export function drivingTotals(
   let trips = 0;
   let miles = 0;
   let unknownTrips = 0;
+  let commuteDays = 0;
   for (const e of Object.values(entries)) {
     if (e.date < from || e.date > to) continue;
+    // A day you clocked in is a day you drove to work (remote-only days,
+    // time off and holidays have no start time).
+    if (e.start) commuteDays++;
     for (const t of e.trips ?? []) {
       trips++;
       const m = tripMiles(t, driving.routes);
@@ -104,14 +107,10 @@ export function drivingTotals(
       else miles += m;
     }
   }
-  const days =
-    to < from
-      ? 0
-      : Math.round((fromKey(addDays(to, 1)).getTime() - fromKey(from).getTime()) / 86_400_000);
-  const commuteMiles = ((driving.commuteMiles ?? 0) * days * COMMUTE_DAYS_PER_WEEK) / 7;
+  const commuteMiles = (driving.commuteMiles ?? 0) * commuteDays;
   const { gas } = driveCosts(miles + commuteMiles, driving);
   const { reimbursement } = driveCosts(miles, driving);
-  return { trips, miles, commuteMiles, unknownTrips, gas, reimbursement };
+  return { trips, miles, commuteMiles, commuteDays, unknownTrips, gas, reimbursement };
 }
 
 /** Gas and reimbursement for a number of miles. */
@@ -309,6 +308,7 @@ export function totalMoney(months: MonthMoney[]): { money: Money; driving: Drivi
     trips: 0,
     miles: 0,
     commuteMiles: 0,
+    commuteDays: 0,
     unknownTrips: 0,
     gas: null,
     reimbursement: null,
@@ -319,6 +319,7 @@ export function totalMoney(months: MonthMoney[]): { money: Money; driving: Drivi
       driving.trips += m.driving.trips;
       driving.miles += m.driving.miles;
       driving.commuteMiles += m.driving.commuteMiles;
+      driving.commuteDays += m.driving.commuteDays;
       driving.unknownTrips += m.driving.unknownTrips;
       if (m.driving.gas != null) driving.gas = (driving.gas ?? 0) + m.driving.gas;
       if (m.driving.reimbursement != null)

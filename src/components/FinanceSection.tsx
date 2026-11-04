@@ -2,11 +2,11 @@ import { StyleSheet, View } from 'react-native';
 
 import {
   DEFAULT_FINANCE,
+  PAY_SCHEDULES,
   useSettings,
   type AmountUnit,
   type Deduction,
   type Finance,
-  type PaySchedule,
   type TaxKey,
 } from '@/store/settings';
 import { radius, space, useTheme } from '@/theme';
@@ -19,13 +19,6 @@ import { NumberField } from './NumberField';
 import { Labeled, Section } from './Section';
 import { SwitchRow } from './SwitchRow';
 import { TextField } from './TextField';
-
-export const SCHEDULES: [PaySchedule, string][] = [
-  ['weekly', 'Weekly'],
-  ['biweekly', 'Every 2 weeks'],
-  ['semimonthly', 'Twice a month'],
-  ['monthly', 'Monthly'],
-];
 
 const UNITS: [Deduction['unit'], string][] = [
   ['percent', '% of pay'],
@@ -75,11 +68,12 @@ export function FinanceSection() {
         <ChoiceChips
           label="How often you're paid"
           clearable={false}
-          options={SCHEDULES.map(([, l]) => l)}
-          value={SCHEDULES.find(([k]) => k === finance.paySchedule)?.[1] ?? 'Every 2 weeks'}
+          options={PAY_SCHEDULES.map(([, l]) => l)}
+          value={PAY_SCHEDULES.find(([k]) => k === finance.paySchedule)?.[1] ?? 'Every 2 weeks'}
           onChange={(l) =>
             set({
-              paySchedule: SCHEDULES.find(([, x]) => x === l)?.[0] ?? DEFAULT_FINANCE.paySchedule,
+              paySchedule:
+                PAY_SCHEDULES.find(([, x]) => x === l)?.[0] ?? DEFAULT_FINANCE.paySchedule,
             })
           }
         />

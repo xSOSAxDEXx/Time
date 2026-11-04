@@ -73,8 +73,8 @@ export function DrivingSection() {
         Leave it blank to skip it.
       </AppText>
       <AppText variant="caption" tone="muted">
-        Daily commute is the miles from home to work and back. Gas for it is counted 5 days a week
-        on the Money tab (not reimbursed).
+        Daily commute is the miles from home to work and back. Gas for it is counted on each day you
+        clock in, on the Money tab (not reimbursed). Remote days and time off don&apos;t count.
       </AppText>
 
       <AppText variant="label">Routes</AppText>

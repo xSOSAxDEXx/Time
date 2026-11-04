@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { DEFAULT_PARTNER, useSettings, type Partner } from '@/store/settings';
+import { DEFAULT_PARTNER, PAY_SCHEDULES, useSettings, type Partner } from '@/store/settings';
 import { perMonth } from '@/timecard/money';
 import { formatMoney } from '@/timecard/pay';
 import { space } from '@/theme';
@@ -8,7 +8,6 @@ import { space } from '@/theme';
 import { AppText } from './AppText';
 import { BillsEditor } from './BillsEditor';
 import { ChoiceChips } from './ChoiceChips';
-import { SCHEDULES } from './FinanceSection';
 import { NumberField } from './NumberField';
 import { Labeled, Section } from './Section';
 import { SwitchRow } from './SwitchRow';
@@ -68,11 +67,12 @@ export function PartnerSection() {
         <ChoiceChips
           label={`How often ${who} is paid`}
           clearable={false}
-          options={SCHEDULES.map(([, l]) => l)}
-          value={SCHEDULES.find(([k]) => k === partner.paySchedule)?.[1] ?? 'Every 2 weeks'}
+          options={PAY_SCHEDULES.map(([, l]) => l)}
+          value={PAY_SCHEDULES.find(([k]) => k === partner.paySchedule)?.[1] ?? 'Every 2 weeks'}
           onChange={(l) =>
             set({
-              paySchedule: SCHEDULES.find(([, x]) => x === l)?.[0] ?? DEFAULT_PARTNER.paySchedule,
+              paySchedule:
+                PAY_SCHEDULES.find(([, x]) => x === l)?.[0] ?? DEFAULT_PARTNER.paySchedule,
             })
           }
         />

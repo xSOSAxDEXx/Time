@@ -169,9 +169,20 @@ describe('driving', () => {
     });
   });
 
-  it('counts the daily commute 5 days a week for gas, but not for reimbursement', () => {
-    const t = drivingTotals({}, '2030-01-01', '2030-01-14', { ...driving, commuteMiles: 30 });
-    // Two weeks: 10 commute days of 30 miles.
+  it('counts the daily commute on days clocked in, for gas but not reimbursement', () => {
+    const entries = of(
+      day('2030-01-07', { start: '08:00', end: '16:00' }),
+      day('2030-01-08', { start: '08:00' }),
+      // Remote, time off and a day outside the dates: no commute.
+      day('2030-01-09', { remoteHours: 8 }),
+      day('2030-01-10', { timeOffHours: 8, timeOffType: 'PTO' }),
+      day('2030-01-20', { start: '08:00', end: '16:00' }),
+    );
+    const t = drivingTotals(entries, '2030-01-01', '2030-01-14', {
+      ...driving,
+      commuteMiles: 150,
+    });
+    expect(t.commuteDays).toBe(2);
     expect(t.commuteMiles).toBeCloseTo(300);
     expect(t.miles).toBe(0);
     expect(t.gas).toBeCloseTo((300 / 25) * 3.2);

@@ -118,6 +118,15 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
 
+## Code review follow-ups (4 Nov 2026)
+
+- Daily commute now counts on each day with a start time instead of 5 days
+  a week (owner approved), so vacation and remote days don't add gas.
+- Money's Months table shows miles including the commute, and its screen
+  reader label says "left over with {name}" when a partner is included.
+- Pay schedule choices live in `settings.ts` (`PAY_SCHEDULES`), shared by
+  Finance and Partner; Settings footer reads "Punch'd · Revision N · …".
+
 ## Revision number (4 Nov 2026, owner request)
 
 - The Week screen shows "Revision N" under the name; the bottom of Settings

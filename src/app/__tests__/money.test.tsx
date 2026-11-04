@@ -96,14 +96,18 @@ describe('Money tab', () => {
     await renderRouter(routes, { initialUrl: '/money' });
     // Jan 7–11 is 5 of 31 days: $200 of Sam's take-home, $50 of their bills.
     expect(screen.getAllByLabelText("Sam's take-home: $200: Their bills $50")).toHaveLength(2);
-    // Commute: 5 days × 14 mi × 5/7 = 50 mi, plus the 20 mi drive; gas $8.96.
+    // Commute: 4 days clocked in × 14 mi = 56 mi, plus the 20 mi drive; gas $9.73.
     expect(
-      screen.getByLabelText('Miles this month: 70 mi: 1 drive · commute 50 mi'),
+      screen.getByLabelText('Miles this month: 76 mi: 1 drive · commute 56 mi (4 days)'),
     ).toBeOnTheScreen();
-    // 527.04 + 200 − 161.29 − 50 − 8.96.
-    expect(screen.getAllByLabelText('Left over with Sam: $507: Bills $211 · gas $9')).toHaveLength(
+    // 527.04 + 200 − 161.29 − 50 − 9.73.
+    expect(screen.getAllByLabelText('Left over with Sam: $506: Bills $211 · gas $10')).toHaveLength(
       2,
     );
+    // The month row reads the combined left over, and miles with the commute.
+    expect(
+      screen.getByLabelText('January: gross $640, take-home $527, left over with sam $506, 76 mi'),
+    ).toBeOnTheScreen();
 
     // Turned off: just yours again.
     await act(async () =>
@@ -112,7 +116,7 @@ describe('Money tab', () => {
         .update({ partner: { ...useSettings.getState().partner, enabled: false } }),
     );
     expect(screen.queryByLabelText(/Sam's take-home/)).toBeNull();
-    expect(screen.getAllByLabelText('Left over: $357: Bills $161 · gas $9')).toHaveLength(2);
+    expect(screen.getAllByLabelText('Left over: $356: Bills $161 · gas $10')).toHaveLength(2);
   });
 
   it('asks for an hourly rate first', async () => {

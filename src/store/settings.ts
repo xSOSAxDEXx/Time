@@ -28,6 +28,14 @@ export const DEFAULT_OVERTIME: WeeklyOvertime = {
 /** How often paychecks come, for deductions entered per paycheck. */
 export type PaySchedule = 'weekly' | 'biweekly' | 'semimonthly' | 'monthly';
 
+/** Each pay schedule and how it's shown in Settings. */
+export const PAY_SCHEDULES: [PaySchedule, string][] = [
+  ['weekly', 'Weekly'],
+  ['biweekly', 'Every 2 weeks'],
+  ['semimonthly', 'Twice a month'],
+  ['monthly', 'Monthly'],
+];
+
 /**
  * Something taken out of each paycheck (CLAUDE.md §3.12). Before-tax
  * deductions lower income tax; before-tax health ones (health, dental,
@@ -113,7 +121,7 @@ export type Driving = {
   reimbursePerMile: number | null;
   /**
    * Miles driven to work and back each day (owner request, 3 Nov 2026),
-   * counted 5 days a week for gas. Missing in older saves.
+   * counted for gas on each day clocked in. Missing in older saves.
    */
   commuteMiles?: number | null;
   routes: Route[];

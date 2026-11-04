@@ -163,8 +163,8 @@ How it's worked out (`src/timecard/money.ts`):
 
 Settings → **Driving**: your car's MPG, the gas price, and a mileage
 reimbursement rate (your employer's, or the IRS business rate), and your
-**daily commute** (miles to work and back), which counts for gas 5 days a
-week but isn't reimbursed. Add the
+**daily commute** (miles to work and back), which counts for gas on each
+day you clock in (not remote days or time off) but isn't reimbursed. Add the
 miles between two places once as a **route**. Each day can have drives:
 arrive and leave adds one when you answer its "Log the drive?" question,
 and the day editor (**Drives**) adds them by hand. Typing the miles for a
