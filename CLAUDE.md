@@ -1,8 +1,70 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Punch'd — project brief
 
-Standing context for Claude Code in the `Time` repo
-(https://github.com/xSOSAxDEXx/Time). Read this with `docs/PROGRESS.md` at
-the start of every session.
+Standing context for the `Time` repo (https://github.com/xSOSAxDEXx/Time).
+Read this with `docs/PROGRESS.md` at the start of every session.
+`docs/architecture.md` has the full code map and diagrams;
+`docs/user-guide.md` uses the app's exact UI wording, so keep it in step.
+
+## 0. Working in this repo
+
+### Commands
+
+```bash
+npm run check          # typecheck + lint + prettier --check + jest; must pass before every commit
+npx jest src/backup/__tests__/places.test.ts   # one test file
+npx jest -t 'imports places'                   # tests by name
+npm run format         # prettier --write .
+npm run web            # dev server (web); npm run android for a device
+npm run build:web      # expo export + scripts/postexport-web.mjs → dist/
+npm run icons          # regenerate every icon from assets/brand/logo-source.jpg
+```
+
+- CI sets `EXPO_PUBLIC_REVISION` before the tests, so a test must not
+  expect "Revision dev". Run `EXPO_PUBLIC_REVISION=1 npm run check` to test
+  as CI does.
+- Both workflows (`android-preview.yml` → an APK pre-release
+  `android-preview-N`, `web-pages.yml` → GitHub Pages under `/Time`) run
+  only when started by hand: `gh api -X POST
+  repos/xSOSAxDEXx/Time/actions/workflows/<file>.yml/dispatches -f
+  ref=main`. Starting one again cancels the run already going.
+- After a change: check, commit, push to `main`, update
+  `docs/PROGRESS.md`, start both builds, and summarise for the owner.
+
+### Things that span several files
+
+- **Startup order:** `index.ts` (package.json `main`) imports
+  `src/geofence/task` **before** `expo-router/entry`. Android starts the
+  app headless for arrive and leave, with no screen, so the background
+  task must be defined there and not in a layout. Don't move it.
+- **Pure logic vs UI:** formulas live in pure, tested modules, mainly
+  `src/timecard/*` (calc, pay, money, breaks, holidays, csv),
+  `src/geofence/engine.ts` (the arrive-and-leave state machine),
+  `src/geofence/outline.ts`, and `src/backup/format.ts` / `places.ts`.
+  Screens and components call them; side effects live in `handle.ts`,
+  `native.ts` and `backup.ts`.
+- **Web twins:** `*.web.ts(x)` replace native modules on the web
+  (`fileIO`, `geofence/native` and `task`, `notifications/scheduler`, the
+  date, time and select fields, service worker registration).
+  Arrive and leave is Android only.
+- **Adding a setting or day field:** add the type and default
+  (`store/settings.ts` or `timecard/types.ts` plus `isEmptyEntry`), a
+  reader in `backup/format.ts` (nothing in a file is trusted; bad values
+  are skipped), and the UI. Persisted stores merge in defaults for keys
+  added later, so no migration is needed.
+- **Internal "clocked" names** (storage keys `clocked-*`, task
+  `clocked-geofence`, backup format `clocked-backup`, package
+  `com.clocked.app`) must not be renamed. Installed copies depend on them
+  (see §4).
+- **Revision label:** `src/revision.ts` reads the `EXPO_PUBLIC_*`
+  variables the workflows set. They're inlined when the app is bundled.
+- **Tests:** `jest.setup.ts` mocks the native modules (location, task
+  manager, notifications, file system with `__setNextPick`, sharing).
+  Screen tests render routes with `expo-router/testing-library`. Use
+  made-up data only.
 
 ---
 
