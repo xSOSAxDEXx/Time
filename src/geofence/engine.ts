@@ -201,7 +201,10 @@ export function applyEvent(
     const e = entries[pe.date];
     const stillOpen = !!e && isInProgress(e);
     const clockedOut = !!e && !!e.end && e.end === clockTimeOf(new Date(pe.at));
-    if (stillOpen || clockedOut) {
+    // After clocking out, coming back counts as a return (to undo it) only
+    // the same day. The next morning it's a new day: "Clock in?".
+    const sameDay = toKey(new Date(pe.at)) === toKey(new Date(event.at));
+    if (stillOpen || (clockedOut && sameDay)) {
       const prompt: GeoPrompt =
         pe.place === event.place
           ? {
@@ -311,13 +314,17 @@ export function answerPatch(
   switch (p.kind) {
     case 'clockIn':
       if (answer !== 'yes') return null;
-      return { start: clockTimeOf(new Date(p.at)), ...(e?.location ? {} : { location: p.place }) };
+      return {
+        start: clockTimeOf(new Date(p.at)),
+        clockInPlace: p.place,
+        ...(e?.location ? {} : { location: p.place }),
+      };
     case 'clockOut':
-      return answer === 'yes' ? { end: clockTimeOf(new Date(p.at)) } : null;
+      return answer === 'yes' ? { end: clockTimeOf(new Date(p.at)), clockOutPlace: p.place } : null;
     case 'break':
     case 'travel': {
       if (!e) return null;
-      const reopen = p.clockedOut ? { end: '' } : {};
+      const reopen = p.clockedOut ? { end: '', clockOutPlace: undefined } : {};
       const away = minutesToHours(minutesBetween(p.from, p.to));
       // A drive is recorded as a trip either way, for miles and gas (§3.13).
       const trip =

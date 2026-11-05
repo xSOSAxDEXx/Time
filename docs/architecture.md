@@ -57,7 +57,7 @@ flowchart LR
 | `timecard/pay.ts`       | Estimated pay: weekly overtime, time off paid per type.                                                                                                                                           |
 | `timecard/money.ts`     | Taxes, deductions, bills, partner, drives, commute: month by month for the Money tab.                                                                                                             |
 | `timecard/charts.ts`    | Chart ranges and bars.                                                                                                                                                                            |
-| `timecard/csv.ts`       | CSV export in the HTML page's columns.                                                                                                                                                            |
+| `timecard/csv.ts`       | CSV export laid out for Excel: a row per day (with clock-in/out places and break times), a total row per week.                                                                                    |
 | `geofence/engine.ts`    | Arrive-and-leave state machine: events in, questions and day changes out.                                                                                                                         |
 | `geofence/outline.ts`   | Pasted corners → covering circle (Welzl), point in polygon, distances.                                                                                                                            |
 | `notifications/plan.ts` | When the clock-out reminder fires and what it says.                                                                                                                                               |
@@ -218,16 +218,16 @@ Running the Android workflow again cancels one already in progress.
 
 ## 7. Where to change things
 
-| To change...                        | Look in                                                                                                             |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| A formula or stat                   | `timecard/calc.ts` and its tests                                                                                    |
-| Pay or overtime                     | `timecard/pay.ts`                                                                                                   |
-| Money, bills, partner, gas          | `timecard/money.ts`, `app/(tabs)/money.tsx`                                                                         |
-| What arrive and leave asks, or when | `geofence/engine.ts`, wording in `geofence/text.ts`                                                                 |
-| Share/import places                 | `backup/places.ts` (file, merge), `components/PlacesShare.tsx`                                                      |
-| A new setting                       | `store/settings.ts` (type + default), a settings section, `backup/format.ts` reader, a round-trip test              |
-| A new day field                     | `timecard/types.ts` (+ `isEmptyEntry`), the day editor, `backup/format.ts` reader, CSV only if the HTML page had it |
-| Web-only behaviour                  | the `*.web.ts(x)` twin of the file                                                                                  |
+| To change...                        | Look in                                                                                                           |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| A formula or stat                   | `timecard/calc.ts` and its tests                                                                                  |
+| Pay or overtime                     | `timecard/pay.ts`                                                                                                 |
+| Money, bills, partner, gas          | `timecard/money.ts`, `app/(tabs)/money.tsx`                                                                       |
+| What arrive and leave asks, or when | `geofence/engine.ts`, wording in `geofence/text.ts`                                                               |
+| Share/import places                 | `backup/places.ts` (file, merge), `components/PlacesShare.tsx`                                                    |
+| A new setting                       | `store/settings.ts` (type + default), a settings section, `backup/format.ts` reader, a round-trip test            |
+| A new day field                     | `timecard/types.ts` (+ `isEmptyEntry`), the day editor, `backup/format.ts` reader, a CSV column if people need it |
+| Web-only behaviour                  | the `*.web.ts(x)` twin of the file                                                                                |
 
 ## 8. Tests
 

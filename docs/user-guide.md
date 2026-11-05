@@ -299,8 +299,12 @@ Settings → **Backup and export**.
 - **Restore** opens a backup, tells you what's in it, and asks before
   replacing what's on the device. It also reads older `clocked-backup`
   files and the original time card page's files.
-- **Export spreadsheet (CSV)** opens in Excel, with the same columns as the
-  original time card page (breaks as minutes).
+- **Export spreadsheet (CSV)** opens in Excel. Each day has its clock in
+  and clock out times, where you **arrived at** and **left from** (when
+  arrive and leave clocked you in or out), the break in minutes and each
+  break's times (11:30 AM – 11:54 AM), remote and time off hours, hours
+  worked, drives, location and comment. Each week ends with a **Total**
+  row.
 
 Back up before uninstalling, before switching phones, and every so often on
 the web.

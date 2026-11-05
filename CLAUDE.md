@@ -232,7 +232,11 @@ Owner-approved additions (formula review, 2 Nov 2026):
 - **Backup:** one JSON file with settings and all entries.
 - **Restore:** load a backup; ask before replacing what's on the device.
   Unreadable parts of a file are skipped, not trusted.
-- **Export CSV:** opens in Excel; same columns as the HTML export.
+- **Export CSV:** opens in Excel, laid out to read easily (owner request,
+  5 Nov 2026; no longer the HTML page's columns): a row per day with clock
+  in and out times and the places arrive and leave clocked you in and out
+  at, break minutes and each break's times, hours, drives, location and
+  comment; a total row after each week.
 - **The app starts empty.** No sample or personal data ships with it.
 - **Restore also reads the time card HTML page's files**: its data file
   (`timecard-data.json`) and its Backup file. This is how the owner moves
@@ -303,7 +307,8 @@ closed; iPhone uses the web app). Off by default.
 - **Ask first, never log on its own.** Questions come as notifications with
   answer buttons, and as cards on the Week screen.
 - Arrive with nothing started today: **"Clock in?"** (logs the arrival
-  time, and the place as Location if none is set).
+  time and place, and the place as Location if none is set). "Clock out?"
+  logs the place left too; both go in the CSV export.
 - Leave while clocked in: after 5 minutes away, **"Clock out?"** (logs the
   time you left), or "On a break".
 - Away **5 minutes or less**: ignored.
@@ -316,8 +321,9 @@ closed; iPhone uses the web app). Off by default.
   "Clock out?").
 - Arrive at a **different place**: **"Log the drive as time worked?"**
   (marks Travel = Yes and counts it, or logs it as break).
-- If you said yes to "Clock out?" and come back, it offers to undo the
-  clock out.
+- If you said yes to "Clock out?" and come back **the same day**, it
+  offers to undo the clock out. Back the next morning is a new day:
+  "Clock in?" (fixed after a phone test, 5 Nov 2026).
 - A time that's already set is never overwritten. Location stays on the
   phone; only the circles are saved (and included in backups). No location
   history.

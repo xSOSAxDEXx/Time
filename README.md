@@ -82,8 +82,14 @@ Settings → Backup and export.
   hours, lists and theme; holidays and pay settings stay as they are.
   Nothing in a file is trusted: days that can't be read are skipped and
   unreadable fields are left blank (`src/backup/format.ts`).
-- **Export spreadsheet (CSV)** has the same columns as the HTML page's
-  export, one row per day for every logged week, and opens in Excel.
+- **Export spreadsheet (CSV)** opens in Excel, laid out to read easily
+  (owner request, 5 Nov 2026; it no longer copies the HTML page's columns):
+  Date, Day, Clock in, Arrived at, Clock out, Left from, Break (min),
+  Break times, Remote, Time off, Time off type, Hours worked, Min clock out,
+  Travel, Drives, Location, Comment. One row per day for every logged week, then
+  a week total row and a blank line. "Arrived at" and "Left from" are the
+  places arrive and leave clocked you in and out at (blank when done by
+  hand).
   Company holidays counted automatically are included. Text that starts
   with `=`, `+`, `-` or `@` gets a leading apostrophe so spreadsheet
   programs don't run it as a formula.
@@ -174,8 +180,8 @@ arrive and leave adds one when you answer its "Log the drive?" question,
 and the day editor (**Drives**) adds them by hand. Typing the miles for a
 drive with no route saves the route for next time. The Money tab totals
 miles, gas and reimbursement by month and year; gas comes off "left over".
-Drives and routes are in backups. The CSV export keeps the time card page's
-columns.
+Drives and routes are in backups, and the CSV export lists each day's
+drives.
 
 ## Arrive and leave (Android)
 

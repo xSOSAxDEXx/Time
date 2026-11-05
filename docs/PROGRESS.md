@@ -118,6 +118,22 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
 
+## Next-morning fix and a readable export (5 Nov 2026, owner request)
+
+- Phone test: arriving at work this morning asked "Were you on a break?"
+  (undo yesterday's clock out) instead of "Clock in?". The trip that
+  started when they left yesterday was still open overnight. Now, after a
+  clock out, coming back only counts as a return the same day; the next
+  day it's "Clock in?". Test added (fails on the old code).
+- Days record where arrive and leave clocked you in and out
+  (`clockInPlace`, `clockOutPlace`), and backups keep them. Blank when done
+  by hand. The undo of a clock out clears the place.
+- CSV export redone for Excel (owner: no need to match the HTML page):
+  Date, Day, Clock in, Arrived at, Clock out, Left from, Break (min), Break
+  times, Remote, Time off, Time off type, Hours worked, Min clock out,
+  Travel, Drives, Location, Comment; a Total row and a blank line after
+  each week.
+
 ## Tech debt phase 1 (5 Nov 2026, owner request)
 
 From the tech debt review (the rest is planned for when features touch

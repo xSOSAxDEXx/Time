@@ -141,6 +141,8 @@ type Fields = {
   comment: unknown;
   trips?: unknown;
   breaks?: unknown;
+  clockInPlace?: unknown;
+  clockOutPlace?: unknown;
   skipHoliday?: unknown;
 };
 
@@ -207,6 +209,10 @@ function readDay(f: Fields): { entry: Entry; repaired: boolean } | null {
     const ok = breaks.filter((b): b is BreakTime => b != null);
     if (ok.length) entry.breaks = ok;
   } else if (f.breaks != null) repaired = true;
+  for (const key of ['clockInPlace', 'clockOutPlace'] as const) {
+    const place = str(f[key]).trim();
+    if (place) entry[key] = place;
+  }
   if (f.skipHoliday === true) entry.skipHoliday = true;
   return { entry, repaired };
 }

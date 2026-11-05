@@ -35,6 +35,10 @@ export type Entry = {
   trips?: Trip[];
   /** When the breaks were, in order. Their lengths are included in `breakHours`. */
   breaks?: BreakTime[];
+  /** The place arrive and leave clocked you in at (blank when clocked in by hand). */
+  clockInPlace?: string;
+  /** The place arrive and leave clocked you out from (blank when clocked out by hand). */
+  clockOutPlace?: string;
   /** Don't count the company holiday on this date (it's a holiday, but not for you this time). */
   skipHoliday?: boolean;
   /** Set on days filled in automatically from the holiday list (never saved). */

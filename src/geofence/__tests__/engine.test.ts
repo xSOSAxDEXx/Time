@@ -44,7 +44,7 @@ describe('arriving', () => {
       body: 'You arrived at 7:52 AM. Clock in at 7:52 AM?',
     });
     const patch = answerPatch(last.notify!, 'yes', {});
-    expect(patch).toEqual({ start: '07:52', location: 'Main office' });
+    expect(patch).toEqual({ start: '07:52', clockInPlace: 'Main office', location: 'Main office' });
     expect(visiblePrompts(state, {}, at(8))).toHaveLength(1);
   });
 
@@ -52,6 +52,7 @@ describe('arriving', () => {
     const { last } = run({}, enter('Main office', 7, 52));
     expect(answerPatch(last.notify!, 'yes', of(day(TODAY, { location: 'Client site' })))).toEqual({
       start: '07:52',
+      clockInPlace: 'Main office',
     });
     const started = of(day(TODAY, { start: '07:30' }));
     expect(answerPatch(last.notify!, 'yes', started)).toBeNull();
@@ -94,7 +95,7 @@ describe('leaving and coming back', () => {
       title: 'Left Main office',
       body: 'You left at 4:31 PM. Clock out at 4:31 PM?',
     });
-    expect(answerPatch(p, 'yes', working)).toEqual({ end: '16:31' });
+    expect(answerPatch(p, 'yes', working)).toEqual({ end: '16:31', clockOutPlace: 'Main office' });
     // "On a break" hides it without changing the day.
     expect(answerPatch(p, 'break', working)).toBeNull();
     expect(visiblePrompts(afterAnswer(state, p), working, at(16, 40))).toEqual([]);
@@ -193,6 +194,26 @@ describe('leaving and coming back', () => {
       breaks: [{ start: '12:02', end: '12:41' }],
     });
     expect(answerPatch(back.notify!, 'dismiss', clockedOut)).toBeNull();
+  });
+
+  it('clocked out yesterday and back the next morning: asks to clock in', () => {
+    // Left at 4:31 PM yesterday and said yes to "Clock out?".
+    const yesterday = '2030-01-08';
+    const y = (h: number, m = 0) => new Date(2030, 0, 8, h, m).getTime();
+    let state = applyEvent(
+      EMPTY_GEO_STATE,
+      { kind: 'enter', place: 'Main office', at: y(8) },
+      of(day(yesterday, { start: '08:00' })),
+    ).state;
+    state = applyEvent(
+      state,
+      { kind: 'exit', place: 'Main office', at: y(16, 31) },
+      of(day(yesterday, { start: '08:00' })),
+    ).state;
+    const card = of(day(yesterday, { start: '08:00', end: '16:31' }));
+    const morning = applyEvent(state, enter('Main office', 7, 52), card);
+    expect(morning.notify).toMatchObject({ kind: 'clockIn', date: TODAY, place: 'Main office' });
+    expect(visiblePrompts(morning.state, card, at(8)).map((p) => p.kind)).toEqual(['clockIn']);
   });
 
   it('leaving with nothing open schedules nothing', () => {

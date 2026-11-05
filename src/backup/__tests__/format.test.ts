@@ -20,6 +20,8 @@ describe("Punch'd backups", () => {
         end: '16:30',
         breakHours: 0.5,
         breaks: [{ start: '11:30', end: '12:00' }],
+        clockInPlace: 'Main office',
+        clockOutPlace: 'Client site',
         trips: [
           { from: 'Main office', to: 'Client site' },
           { from: 'Client site', to: 'Main office', miles: 21.5 },

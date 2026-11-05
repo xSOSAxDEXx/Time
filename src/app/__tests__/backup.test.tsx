@@ -70,7 +70,7 @@ describe('backup and export', () => {
     const file = lastShared();
     expect(file.uri).toBe('file:///cache/punchd-2030-01-09.csv');
     expect(file.text.split('\r\n')[1]).toBe(
-      'Monday,2030-01-07,8:00 AM,4:00 PM,4:00 PM,,,,8.00,,,,',
+      '2030-01-07,Monday,8:00 AM,,4:00 PM,,,,,,,8.00,4:00 PM,,,,',
     );
   });
 
