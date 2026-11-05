@@ -118,6 +118,26 @@ counting as days worked). All are built; see CLAUDE.md §3.2 and §3.4.
 - Chart columns on a phone are as wide as the screen allows (40 px for a
   week), and the computer table keeps 40 px fields like the HTML page.
 
+## Tech debt phase 1 (5 Nov 2026, owner request)
+
+From the tech debt review (the rest is planned for when features touch
+the code, and before any Play Store release):
+
+- `check.yml`: `npm run check` on every push to `main` and every pull
+  request. Builds stay manual.
+- Saved settings now get defaults for fields added inside `finance`,
+  `driving` and `partner` (`withDefaults`), so a new field can't come
+  back missing after an update. A test makes sure every new object setting
+  is put in a group. Kept simple on purpose: it fills in what's missing and
+  doesn't re-check what's there, so loading can never throw away saved
+  data.
+- Expo SDK 58 patch updates (expo 58.0.23 and its modules). The
+  datetimepicker stays at the version Expo pins.
+- Later (when touched): week table and settings section tests, the
+  `useReminder` lint exception, a plural helper, splitting big files.
+  Before Play Store: own signing key with the app ID decision; the Expo
+  SDK upgrade with major updates.
+
 ## Share places (4 Nov 2026, owner request)
 
 - Settings → Arrive and leave → **Share places** saves

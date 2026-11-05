@@ -215,6 +215,31 @@ export function pickSettings(state: Settings): Settings {
   return out as Settings;
 }
 
+/**
+ * Settings that are one object of fields with fixed names. A field added to
+ * one of them in a later version is missing from what older versions saved,
+ * so loading fills it in from the default. Add any new setting of this kind
+ * here; a test checks none is left out. (Not `overtime`, `timeOffPay`: a
+ * rule or a list of names, where filling in defaults would change them.)
+ */
+export const FIELD_GROUP_SETTINGS = ['finance', 'driving', 'partner'] as const;
+
+const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/** Saved settings with defaults for anything added since they were saved, at both levels. */
+export function withDefaults(saved: unknown): Settings {
+  const s: Partial<Settings> = isPlainObject(saved) ? saved : {};
+  const out = { ...DEFAULT_SETTINGS, ...s } as Record<keyof Settings, unknown>;
+  for (const key of FIELD_GROUP_SETTINGS) {
+    const value = s[key];
+    out[key] = isPlainObject(value)
+      ? { ...DEFAULT_SETTINGS[key], ...value }
+      : DEFAULT_SETTINGS[key];
+  }
+  return out as Settings;
+}
+
 export const useSettings = create<SettingsState>()(
   persist<SettingsState, [], [], Settings>(
     (set) => ({
@@ -227,8 +252,8 @@ export const useSettings = create<SettingsState>()(
       version: 1,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: pickSettings,
-      // Settings added in later versions get their defaults.
-      merge: (persisted, current) => ({ ...current, ...(persisted as Partial<Settings>) }),
+      // Settings (and fields within them) added in later versions get their defaults.
+      merge: (persisted, current) => ({ ...current, ...withDefaults(persisted) }),
     },
   ),
 );

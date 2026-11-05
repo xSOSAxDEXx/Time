@@ -110,10 +110,14 @@ type Entry = {
 
 ### Settings changes over time
 
-New settings get their defaults through the persist `merge` (stored
-settings spread over the defaults), so adding a field needs no migration.
-Optional fields that older saves lack (`taxUnits`, `commuteMiles`, ...)
-are typed as optional.
+New settings get their defaults when saved settings load (`withDefaults`
+in `store/settings.ts`), so adding one needs no migration. Fields added
+inside `finance`, `driving` and `partner` (`FIELD_GROUP_SETTINGS`) are
+filled in from their defaults the same way. `overtime` and `timeOffPay`
+are kept exactly as saved: they're a rule and a list of names, so filling
+in defaults would change them. A test fails if a new object setting isn't
+put in one group or the other. Fields from before this existed
+(`taxUnits`, `commuteMiles`) stay optional.
 
 ### Backups (`backup/format.ts`)
 
@@ -189,7 +193,7 @@ sequenceDiagram
 
 | What            | How                                                                                                                                                                                                                                                                                                                                              |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Checks          | `npm run check`: TypeScript, ESLint, Prettier, Jest. Run before every commit.                                                                                                                                                                                                                                                                    |
+| Checks          | `npm run check`: TypeScript, ESLint, Prettier, Jest. Run before every commit, and by `check.yml` on every push to `main` and every pull request.                                                                                                                                                                                                 |
 | Android APK     | GitHub Actions **Android preview build** (`android-preview.yml`, run by hand): `expo prebuild`, Gradle release build (arm64), signed with the debug key, published as release `android-preview-N` with `punchd-preview-N.apk`.                                                                                                                   |
 | Web app         | GitHub Actions **Web app (GitHub Pages)** (`web-pages.yml`, run by hand): `npm run build:web` with `EXPO_BASE_URL=/Time`. `scripts/postexport-web.mjs` stamps the service worker's precache list and writes `404.html` for deep links.                                                                                                           |
 | Revision number | Both workflows check out full history and set `EXPO_PUBLIC_REVISION` (`git rev-list --count HEAD`), `EXPO_PUBLIC_COMMIT`, `EXPO_PUBLIC_BUILT` and, on Android, `EXPO_PUBLIC_BUILD`. Expo inlines them at build time (`src/revision.ts`); other builds show "Revision dev". Tests must not assume "dev", since CI sets the number before testing. |

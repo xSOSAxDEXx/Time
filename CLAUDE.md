@@ -26,7 +26,9 @@ npm run icons          # regenerate every icon from assets/brand/logo-source.jpg
 - CI sets `EXPO_PUBLIC_REVISION` before the tests, so a test must not
   expect "Revision dev". Run `EXPO_PUBLIC_REVISION=1 npm run check` to test
   as CI does.
-- Both workflows (`android-preview.yml` → an APK pre-release
+- `check.yml` runs `npm run check` on every push to `main` and every pull
+  request; it builds nothing.
+- The two build workflows (`android-preview.yml` → an APK pre-release
   `android-preview-N`, `web-pages.yml` → GitHub Pages under `/Time`) run
   only when started by hand: `gh api -X POST
   repos/xSOSAxDEXx/Time/actions/workflows/<file>.yml/dispatches -f
@@ -53,8 +55,11 @@ npm run icons          # regenerate every icon from assets/brand/logo-source.jpg
 - **Adding a setting or day field:** add the type and default
   (`store/settings.ts` or `timecard/types.ts` plus `isEmptyEntry`), a
   reader in `backup/format.ts` (nothing in a file is trusted; bad values
-  are skipped), and the UI. Persisted stores merge in defaults for keys
-  added later, so no migration is needed.
+  are skipped), and the UI. Loading saved settings fills in defaults for
+  settings added later, and for fields added inside `finance`, `driving`
+  and `partner` (`withDefaults`, `FIELD_GROUP_SETTINGS`), so no migration
+  is needed. A new setting that's an object of named fields goes in
+  `FIELD_GROUP_SETTINGS`, and a test fails until it's listed.
 - **Internal "clocked" names** (storage keys `clocked-*`, task
   `clocked-geofence`, backup format `clocked-backup`, package
   `com.clocked.app`) must not be renamed. Installed copies depend on them
